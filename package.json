@@ -1,13 +1,17 @@
 {
   "name": "dwf-m6-desafio",
   "version": "1.0.0",
-  "main": "index.js",
   "repository": "https://github.com/ayrton08/dwf-m6-desafio.git",
   "author": "ayrton juarez <ayrtonjuarez90@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.0",
     "parcel": "^2.5.0",
     "typescript": "^4.6.3"
+  }, 
+  "scripts": {
+    "dev:front":"parcel serve ./client/index.html",
+    "dev:server": "nodemon ./server/index.ts"
   }
 }

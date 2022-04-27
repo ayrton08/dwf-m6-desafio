@@ -1,0 +1,53 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #026873;
+  background-image: linear-gradient(90deg, #ffffff12 50%, #0000 50%), linear-gradient(90deg, #ffffff21 50%, #0000 50%), linear-gradient(90deg, #0000 50%, #ffffff2b 50%), linear-gradient(90deg, #0000 50%, #ffffff30 50%);
+  background-size: 13px, 29px, 37px, 53px;
+  margin: 0;
+}
+
+.contenedor {
+  width: 100%;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  padding: 50px 34px 0;
+  display: flex;
+}
+
+@media (min-width: 750px) {
+  .contenedor {
+    width: 100%;
+    height: 940px;
+    align-items: center;
+    gap: 50px;
+    display: flex;
+  }
+}
+
+.container {
+  gap: 30px;
+  display: flex;
+}
+
+@media (min-width: 750px) {
+  title-text {
+    padding-top: 150px;
+    font-size: 80px;
+  }
+}
+
+@media (min-width: 750px) {
+  instructions-comp {
+    max-width: 350px;
+    padding-top: 150px;
+    font-size: 80px;
+  }
+}
+
+/*# sourceMappingURL=index.28a80292.css.map */
