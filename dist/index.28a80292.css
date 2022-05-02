@@ -50,4 +50,27 @@ body {
   }
 }
 
+.name {
+  width: 322px;
+  height: 87px;
+  color: #000;
+  border: 10px solid #001997;
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+  padding: 17px 13px;
+  font-family: Odibee Sans, cursive;
+  font-size: 38px;
+  display: flex;
+}
+
+.code-room {
+  color: red;
+  font-size: 40px;
+}
+
+.compartir-code {
+  font-size: 40px;
+}
+
 /*# sourceMappingURL=index.28a80292.css.map */

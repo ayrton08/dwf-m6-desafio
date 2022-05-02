@@ -58,3 +58,27 @@ body {
         max-width: 350px;
     }
 }
+
+.name{
+    border: 10px solid #001997;
+                padding:17px 13px;
+                width: 322px;
+                height: 87px;
+                border-radius: 10px;
+
+                font-size: 38px; 
+                font-family: 'Odibee Sans', cursive;
+                color: black;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+}
+
+.code-room {
+    font-size: 40px;
+    color: red;
+}
+
+.compartir-code {
+    font-size: 40px;
+}

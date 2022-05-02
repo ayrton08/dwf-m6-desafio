@@ -19,13 +19,14 @@ export function welcomePage (params) {
 
     buttonNewGame.addEventListener("click",(event)=>{
         event.preventDefault()
-        params.goTo("/instructions")
+        
+        params.goTo("/yourName")
     })
 
-    buttonRoom.addEventListener("click",(event)=>{
-        event.preventDefault()
-        params.goTo("/instructions")
-    })
+    // buttonRoom.addEventListener("click",(event)=>{
+    //     event.preventDefault()
+    //     params.goTo("/instructions")
+    // })
 
     return div
 }

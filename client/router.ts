@@ -1,5 +1,6 @@
-import { instructionsPage } from "./pages/instructions";
+import { yourName } from "./pages/yourName";
 import { welcomePage } from "./pages/welcome/index";
+import { codeRoom } from "./pages/codeRoom";
 // import { play } from "./pages/play/index";
 // import { ganaste } from "./pages/result/ganaste";
 // import { perdiste } from "./pages/result/perdiste";
@@ -15,13 +16,13 @@ const routes = [
         component: welcomePage,
     },
     {
-        path: /\/instructions/,
-        component: instructionsPage,
+        path: /\/yourName/,
+        component: yourName,
     },
-    // {
-    //     path: /\/play/,
-    //     component: play,
-    // },
+    {
+        path: /\/codeRoom/,
+        component: codeRoom,
+    },
     // {
     //     path: /\/result\/perdiste/,
     //     component: perdiste,

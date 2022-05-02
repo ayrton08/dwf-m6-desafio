@@ -16,7 +16,6 @@ import { historyComp } from "./components/history-game";
     titleText()
     buttonStart()
     buttonRoom()
-
     buttonPlay()
     papel()
     piedra()
