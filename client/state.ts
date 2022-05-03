@@ -1,5 +1,5 @@
 const API_BASE_URL = "http://localhost:3000";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, update } from "firebase/database";
 import { rtdb } from "../server/rtdb";
 import map from "lodash/map";
 
@@ -12,7 +12,6 @@ const state = {
     data: {
         fullName: "",
         userId: "",
-        messages: [],
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {},
@@ -22,6 +21,7 @@ const state = {
 
     init() {
         const lastStorageState = localStorage.getItem("state");
+        return JSON.parse(lastStorageState);
     },
 
     listenRoom() {
@@ -31,8 +31,8 @@ const state = {
         onValue(chatroomsRef, (snapshot) => {
             const currentState = this.getState();
             const value = snapshot.val();
-            currentState.rtdbData = value.currentGame;
-            console.log(currentState);
+            currentState.rtdbData = value;
+            console.log(value);
             this.setState(currentState);
         });
     },
@@ -48,6 +48,7 @@ const state = {
 
     signIn(callback?) {
         const currentState = this.getState();
+
         if (currentState.fullName) {
             return fetch(API_BASE_URL + "/signup", {
                 method: "post",
@@ -61,20 +62,21 @@ const state = {
                 })
                 .then((data) => {
                     currentState.userId = data.id;
-                    this.setState(currentState);
                     if (callback) {
                         callback();
                     }
+                    return this.setState(currentState);
                 });
         } else {
             console.error("No hay un nombre en el State");
         }
+        return Promise.reject();
     },
 
     askNewRoom(callback?) {
         const currentState = this.getState();
         if (currentState.userId) {
-            fetch(API_BASE_URL + "/rooms", {
+            return fetch(API_BASE_URL + "/rooms", {
                 method: "post",
                 headers: {
                     "Content-Type": "application/json",
@@ -85,11 +87,11 @@ const state = {
                     return res.json();
                 })
                 .then((data) => {
-                    (currentState.roomId = data.id),
-                        this.setState(currentState);
+                    currentState.roomId = data.id;
                     if (callback) {
                         callback();
                     }
+                    return this.setState(currentState);
                 });
         } else {
             console.error("No hay userId");
@@ -98,8 +100,10 @@ const state = {
 
     accessToRoom(callback?) {
         const currentState = this.getState();
-        const roomId = currentState.roomId;
-        fetch(
+        // const roomId = currentState.roomId;
+        const roomIdStorage = this.init();
+        const roomId = roomIdStorage.roomId;
+        return fetch(
             API_BASE_URL + "/room/" + roomId + "?userId=" + currentState.userId
         )
             .then((res) => {
@@ -123,11 +127,62 @@ const state = {
         }
         localStorage.setItem("state", JSON.stringify(newState));
 
-        console.log("Soy el state, he cambiado " + this.data);
+        console.log("Soy el state, he cambiado ", this.data);
+        return Promise.resolve();
     },
 
     subscribe(callback: (any) => any) {
         this.listeners.push(callback);
+    },
+
+    setStatus(callback?) {
+        console.log("SOY EL SET ROOM");
+        const currentState = this.getState();
+
+        const rtdbRoomId = this.init().rtdbRoomId;
+        return fetch(API_BASE_URL + "/jugadas", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                status: true,
+                rtdbRoomId,
+            }),
+        })
+            .then((res) => {
+                return res.json();
+            })
+            .then((data) => {
+                currentState.rtdbData = data;
+                return this.setState(currentState);
+            });
+    },
+
+    setPlay(choise,name,online) {
+        console.log("SOY EL SET Play");
+        const currentState = this.getState();
+
+        const rtdbRoomId = this.init().rtdbRoomId;
+        return fetch(API_BASE_URL + "/play", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                choise: choise,
+                name: name,
+                online: online,
+                rtdbRoomId,
+            }),
+        })
+            .then((res) => {
+                return res.json();
+            })
+            .then((data) => {
+                currentState.rtdbData = data;
+                return this.setState(currentState);
+            });
     },
 };
 

@@ -1,7 +1,7 @@
 import { yourName } from "./pages/yourName";
 import { welcomePage } from "./pages/welcome/index";
 import { codeRoom } from "./pages/codeRoom";
-// import { play } from "./pages/play/index";
+import { play } from "./pages/play/index";
 // import { ganaste } from "./pages/result/ganaste";
 // import { perdiste } from "./pages/result/perdiste";
 // import { empate } from "./pages/result/empate";
@@ -22,6 +22,10 @@ const routes = [
     {
         path: /\/codeRoom/,
         component: codeRoom,
+    },
+    {
+        path: /\/play/,
+        component: play,
     },
     // {
     //     path: /\/result\/perdiste/,

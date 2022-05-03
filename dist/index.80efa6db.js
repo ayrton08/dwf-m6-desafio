@@ -562,7 +562,7 @@ parcelHelpers.export(exports, "initRouter", ()=>initRouter
 var _yourName = require("./pages/yourName");
 var _index = require("./pages/welcome/index");
 var _codeRoom = require("./pages/codeRoom");
-// import { play } from "./pages/play/index";
+var _index1 = require("./pages/play/index");
 // import { ganaste } from "./pages/result/ganaste";
 // import { perdiste } from "./pages/result/perdiste";
 // import { empate } from "./pages/result/empate";
@@ -579,6 +579,10 @@ const routes = [
     {
         path: /\/codeRoom/,
         component: _codeRoom.codeRoom
+    },
+    {
+        path: /\/play/,
+        component: _index1.play
     }, 
 ];
 function initRouter(container) {
@@ -604,7 +608,7 @@ function initRouter(container) {
     };
 }
 
-},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu"}],"SIkvo":[function(require,module,exports) {
+},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA"}],"SIkvo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "welcomePage", ()=>welcomePage
@@ -690,12 +694,12 @@ function yourName(params) {
         const nameValue = document.querySelector("input").value;
         _state.state.setFullName(nameValue);
         console.log(_state.state.data);
-        _state.state.signIn().then(()=>{
-            _state.state.askNewRoom();
+        _state.state.signIn().then((response)=>{
+            console.log("SIGNIN", response);
+            return _state.state.askNewRoom();
         }).then(()=>{
-            _state.state.accessToRoom();
+            return params.goTo("/codeRoom");
         });
-    // params.goTo("/codeRoom");
     });
     return div;
 }
@@ -712,7 +716,6 @@ const state = {
     data: {
         fullName: "",
         userId: "",
-        messages: [],
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {}
@@ -720,6 +723,7 @@ const state = {
     listeners: [],
     init () {
         const lastStorageState = localStorage.getItem("state");
+        return JSON.parse(lastStorageState);
     },
     listenRoom () {
         const currentState1 = this.getState();
@@ -727,8 +731,8 @@ const state = {
         _database.onValue(chatroomsRef, (snapshot)=>{
             const currentState = this.getState();
             const value = snapshot.val();
-            currentState.rtdbData = value.currentGame;
-            console.log(currentState);
+            currentState.rtdbData = value;
+            console.log(value);
             this.setState(currentState);
         });
     },
@@ -753,14 +757,15 @@ const state = {
             return res.json();
         }).then((data)=>{
             currentState.userId = data.id;
-            this.setState(currentState);
             if (callback) callback();
+            return this.setState(currentState);
         });
         else console.error("No hay un nombre en el State");
+        return Promise.reject();
     },
     askNewRoom (callback) {
         const currentState = this.getState();
-        if (currentState.userId) fetch(API_BASE_URL + "/rooms", {
+        if (currentState.userId) return fetch(API_BASE_URL + "/rooms", {
             method: "post",
             headers: {
                 "Content-Type": "application/json"
@@ -771,15 +776,18 @@ const state = {
         }).then((res)=>{
             return res.json();
         }).then((data)=>{
-            currentState.roomId = data.id, this.setState(currentState);
+            currentState.roomId = data.id;
             if (callback) callback();
+            return this.setState(currentState);
         });
         else console.error("No hay userId");
     },
     accessToRoom (callback) {
         const currentState = this.getState();
-        const roomId = currentState.roomId;
-        fetch(API_BASE_URL + "/room/" + roomId + "?userId=" + currentState.userId).then((res)=>{
+        // const roomId = currentState.roomId;
+        const roomIdStorage = this.init();
+        const roomId = roomIdStorage.roomId;
+        return fetch(API_BASE_URL + "/room/" + roomId + "?userId=" + currentState.userId).then((res)=>{
             return res.json();
         }).then((data)=>{
             currentState.rtdbRoomId = data.rtdbRoomId, this.setState(currentState);
@@ -790,10 +798,53 @@ const state = {
         this.data = newState;
         for (const cb of this.listeners)cb();
         localStorage.setItem("state", JSON.stringify(newState));
-        console.log("Soy el state, he cambiado " + this.data);
+        console.log("Soy el state, he cambiado ", this.data);
+        return Promise.resolve();
     },
     subscribe (callback) {
         this.listeners.push(callback);
+    },
+    setStatus (callback) {
+        console.log("SOY EL SET ROOM");
+        const currentState = this.getState();
+        const rtdbRoomId = this.init().rtdbRoomId;
+        return fetch(API_BASE_URL + "/jugadas", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                status: true,
+                rtdbRoomId
+            })
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            currentState.rtdbData = data;
+            return this.setState(currentState);
+        });
+    },
+    setPlay (choise, name, online) {
+        console.log("SOY EL SET Play");
+        const currentState = this.getState();
+        const rtdbRoomId = this.init().rtdbRoomId;
+        return fetch(API_BASE_URL + "/play", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                choise: choise,
+                name: name,
+                online: online,
+                rtdbRoomId
+            })
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            currentState.rtdbData = data;
+            return this.setState(currentState);
+        });
     }
 };
 
@@ -15450,8 +15501,8 @@ function codeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <span class="compartir-code">Comparti el siguiente codigo con tu amigo<span class="code-room"></span></span>
         
+        <div class="code"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -15459,10 +15510,16 @@ function codeRoom(params) {
         </div>
     `;
     const codigo = JSON.parse(localStorage.getItem("state"));
-    const codeRoom1 = div.querySelector(".code-room");
-    codeRoom1.textContent = codigo.roomId;
-    _state.state.accessToRoom();
-    _state.state.listenRoom();
+    const codeRoom1 = div.querySelector(".code");
+    codigo.roomId && (codeRoom1.textContent = `Comparti el siguiente codigo con tu amigo: ${codigo.roomId}`);
+    _state.state.accessToRoom().then(()=>{
+        return _state.state.setStatus();
+    }).then(()=>{
+        return _state.state.listenRoom();
+    }).then(()=>{
+        console.log("SOY DEL LOCAL", _state.state.data.rtdbData[0]);
+        if (!_state.state.data.rtdbData.jugador1) params.goTo("/play");
+    });
     // button.addEventListener("click",(event)=>{
     //     event.preventDefault()
     //     const nameValue = document.querySelector("input").value
@@ -15473,7 +15530,140 @@ function codeRoom(params) {
     return div;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"g1OJX":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"7u8WA":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "play", ()=>play
+);
+var _state = require("../../state");
+function play(params) {
+    // function redireccionar() {
+    //     if (location.pathname === "/play") {
+    //         params.goTo("/instructions");
+    //     }
+    // }
+    setTimeout(()=>{}, 7000);
+    const div = document.createElement("div");
+    div.className = "container-play";
+    div.innerHTML = `
+
+    <counter-comp></counter-comp>
+    <div class="jugadas">
+    <piedra-comp></piedra-comp>
+    <papel-comp></papel-comp>
+    <tijera-comp></tijera-comp>
+    </div>
+    `;
+    function jugadaMaquina() {
+        const opciones = [
+            "piedra",
+            "papel",
+            "tijera"
+        ];
+        const resultado = opciones[Math.floor(Math.random() * opciones.length)];
+        return resultado;
+    }
+    const piedra = div.querySelector("piedra-comp");
+    const papel = div.querySelector("papel-comp");
+    const tijera = div.querySelector("tijera-comp");
+    piedra.addEventListener("click", (event)=>{
+        event.preventDefault();
+        papel.style.opacity = "0.4";
+        tijera.style.opacity = "0.4";
+        _state.state.setPlay("piedra", "Ayrton", true);
+        console.log("SOY EL EVENTO PIEDRA", _state.state.data);
+        const playMaquina = jugadaMaquina();
+    // const resultado = state.whoWins("piedra", playMaquina);
+    //     setTimeout(() => {
+    //         if (resultado === "gane") {
+    //             // state.win();
+    //             return params.goTo("/result/jugada", {
+    //                 resultado: "ganaste",
+    //                 player: "piedra",
+    //                 machine: playMaquina,
+    //             });
+    //         }
+    //         if (resultado === "empate") {
+    //             return params.goTo("/result/jugada", {
+    //                 resultado: "empate",
+    //                 player: "piedra",
+    //                 machine: playMaquina,
+    //             });
+    //         } else {
+    //             state.lost();
+    //             return params.goTo("/result/jugada", {
+    //                 resultado: "perdiste",
+    //                 player: "piedra",
+    //                 machine: playMaquina,
+    //             });
+    //         }
+    //     }, 700);
+    });
+    papel.addEventListener("click", (event)=>{
+        event.preventDefault();
+        piedra.style.opacity = "0.4";
+        tijera.style.opacity = "0.4";
+        const playMaquina = jugadaMaquina();
+        const resultado = _state.state.whoWins("papel", playMaquina);
+        console.log(resultado);
+        setTimeout(()=>{
+            if (resultado === "gane") {
+                _state.state.win();
+                return params.goTo("/result/jugada", {
+                    resultado: "ganaste",
+                    player: "papel",
+                    machine: playMaquina
+                });
+            }
+            if (resultado === "empate") return params.goTo("/result/jugada", {
+                resultado: "empate",
+                player: "papel",
+                machine: playMaquina
+            });
+            else {
+                _state.state.lost();
+                return params.goTo("/result/jugada", {
+                    resultado: "perdiste",
+                    player: "papel",
+                    machine: playMaquina
+                });
+            }
+        }, 700);
+    });
+    tijera.addEventListener("click", (event)=>{
+        event.preventDefault();
+        papel.style.opacity = "0.4";
+        piedra.style.opacity = "0.4";
+        const playMaquina = jugadaMaquina();
+        const resultado = _state.state.whoWins("tijera", playMaquina);
+        setTimeout(()=>{
+            if (resultado === "gane") {
+                _state.state.win();
+                return params.goTo("/result/jugada", {
+                    resultado: "ganaste",
+                    player: "tijera",
+                    machine: playMaquina
+                });
+            }
+            if (resultado === "empate") return params.goTo("/result/jugada", {
+                resultado: "empate",
+                player: "tijera",
+                machine: playMaquina
+            });
+            else {
+                _state.state.lost();
+                return params.goTo("/result/jugada", {
+                    resultado: "perdiste",
+                    player: "tijera",
+                    machine: playMaquina
+                });
+            }
+        }, 700);
+    });
+    return div;
+}
+
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g1OJX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "titleText", ()=>titleText

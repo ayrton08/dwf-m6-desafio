@@ -19,14 +19,20 @@ export function yourName(params) {
         event.preventDefault();
         const nameValue = document.querySelector("input").value;
         state.setFullName(nameValue);
-        console.log(state.data);
-        state.signIn().then(() => {
-            state.askNewRoom();
-        }).then(()=>{
-            state.accessToRoom()
-        })
 
-        // params.goTo("/codeRoom");
+        console.log(state.data);
+
+        state
+            .signIn()
+            .then((response) => {
+                console.log("SIGNIN", response);
+
+                return state.askNewRoom();
+            })
+            
+            .then(() => {
+                return params.goTo("/codeRoom");
+            });
     });
 
     return div;
