@@ -1,7 +1,6 @@
-
-export function welcomePage (params) {
-    const div = document.createElement("div")
-    div.className = "contenedor" 
+export function welcomePage(params) {
+    const div = document.createElement("div");
+    div.className = "contenedor";
     div.innerHTML = `
         <title-text></title-text>
         <button-new-game></button-new-game>
@@ -12,21 +11,25 @@ export function welcomePage (params) {
         <tijera-comp></tijera-comp>
         </div>
        
-    `
+    `;
 
-    const buttonNewGame = div.querySelector("button-new-game")
-    const buttonRoom = div.querySelector("button-room")
+    const buttonNewGame = div.querySelector("button-new-game");
+    const buttonRoom = div.querySelector("button-room");
 
-    buttonNewGame.addEventListener("click",(event)=>{
-        event.preventDefault()
-        
-        params.goTo("/yourName")
-    })
+    buttonNewGame.addEventListener("click", (event) => {
+        event.preventDefault();
+        localStorage.setItem("player", "1");
+        params.goTo("/yourName");
+    });
 
-    // buttonRoom.addEventListener("click",(event)=>{
-    //     event.preventDefault()
-    //     params.goTo("/instructions")
-    // })
+    buttonRoom.addEventListener("click", (event) => {
+        event.preventDefault();
+        localStorage.setItem("player", "2");
 
-    return div
+        params.goTo("/yourCodeRoom");
+    });
+
+    
+
+    return div;
 }

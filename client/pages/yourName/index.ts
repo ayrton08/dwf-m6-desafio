@@ -15,24 +15,33 @@ export function yourName(params) {
 
     const button = div.querySelector("button-play");
 
+    const player = localStorage.getItem("player")
+
     button.addEventListener("click", (event) => {
         event.preventDefault();
         const nameValue = document.querySelector("input").value;
         state.setFullName(nameValue);
 
-        console.log(state.data);
+        
 
-        state
-            .signIn()
-            .then((response) => {
-                console.log("SIGNIN", response);
-
-                return state.askNewRoom();
-            })
+        state.signIn().then(() => {
             
-            .then(() => {
-                return params.goTo("/codeRoom");
-            });
+            if (state.data.roomId) {
+                state.getRtdbRoomId().then(() => {
+                    
+                    
+                    state.setStatus(player)
+                    state.listenRoom();
+                    
+                    return params.goTo("/play");
+                });
+            } else {
+                state.askNewRoom().then(() => {
+                    state.listenRoom();
+                    return params.goTo("/codeRoom");
+                });
+            }
+        });
     });
 
     return div;

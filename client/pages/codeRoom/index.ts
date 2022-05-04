@@ -5,7 +5,7 @@ export function codeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        
+        <button-play class="button"></button-play>
         <div class="code"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -17,33 +17,31 @@ export function codeRoom(params) {
 
     const codeRoom = div.querySelector(".code");
     codigo.roomId
-        ? (codeRoom.textContent = `Comparti el siguiente codigo con tu amigo: ${codigo.roomId}`)
+        ? (codeRoom.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`)
         : null;
 
+        // const button = document.querySelector("code");
+    
+        // button.addEventListener("click", () => {
+        //     console.log("soy el click");
+        //     codeRoom.textContent = "Esperando a ... apriete Jugar";
+        //     codeRoom.innerHTML = "Esperando a ... apriete Jugar";
+            
+        // });
+        const goToRoom = ()=>{
+            return params.goTo("/play")
+
+        }
     state
         .accessToRoom()
         .then(() => {
-            
-            return state.setStatus();
-        })
-        .then(() => {
-            return state.listenRoom();
-        }).then(()=>{
-            
-            console.log("SOY DEL LOCAL",state.data.rtdbData[0]);
-            if (!state.data.rtdbData.jugador1) {
-                params.goTo("/play");
-            }
+            return state.listenRoom(goToRoom);
         })
 
 
-    // button.addEventListener("click",(event)=>{
-    //     event.preventDefault()
-    //     const nameValue = document.querySelector("input").value
-    //     state.setFullName(nameValue)
-    //     console.log(state.data)
-    //     // params.goTo("/play")
-    // })
+
+
+
 
     return div;
 }

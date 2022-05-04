@@ -563,10 +563,11 @@ var _yourName = require("./pages/yourName");
 var _index = require("./pages/welcome/index");
 var _codeRoom = require("./pages/codeRoom");
 var _index1 = require("./pages/play/index");
-// import { ganaste } from "./pages/result/ganaste";
-// import { perdiste } from "./pages/result/perdiste";
-// import { empate } from "./pages/result/empate";
-// import { jugada } from "./pages/jugada/index";
+var _yourCodeRoom = require("./pages/yourCodeRoom");
+var _ganaste = require("./pages/result/ganaste");
+var _perdiste = require("./pages/result/perdiste");
+var _empate = require("./pages/result/empate");
+var _index2 = require("./pages/jugada/index");
 const routes = [
     {
         path: /\/welcome/,
@@ -583,6 +584,26 @@ const routes = [
     {
         path: /\/play/,
         component: _index1.play
+    },
+    {
+        path: /\/yourCodeRoom/,
+        component: _yourCodeRoom.yourCodeRoom
+    },
+    {
+        path: /\/result\/perdiste/,
+        component: _perdiste.perdiste
+    },
+    {
+        path: /\/result\/jugada/,
+        component: _index2.jugada
+    },
+    {
+        path: /\/result\/ganaste/,
+        component: _ganaste.ganaste
+    },
+    {
+        path: /\/result\/empate/,
+        component: _empate.empate
     }, 
 ];
 function initRouter(container) {
@@ -608,7 +629,7 @@ function initRouter(container) {
     };
 }
 
-},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA"}],"SIkvo":[function(require,module,exports) {
+},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA","./pages/yourCodeRoom":"cyFSo","./pages/jugada/index":"bz7EC","./pages/result/ganaste":"kn60J","./pages/result/perdiste":"kKjvO","./pages/result/empate":"18BHo"}],"SIkvo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "welcomePage", ()=>welcomePage
@@ -631,12 +652,14 @@ function welcomePage(params) {
     const buttonRoom = div.querySelector("button-room");
     buttonNewGame.addEventListener("click", (event)=>{
         event.preventDefault();
+        localStorage.setItem("player", "1");
         params.goTo("/yourName");
     });
-    // buttonRoom.addEventListener("click",(event)=>{
-    //     event.preventDefault()
-    //     params.goTo("/instructions")
-    // })
+    buttonRoom.addEventListener("click", (event)=>{
+        event.preventDefault();
+        localStorage.setItem("player", "2");
+        params.goTo("/yourCodeRoom");
+    });
     return div;
 }
 
@@ -689,16 +712,21 @@ function yourName(params) {
         </div>
     `;
     const button = div.querySelector("button-play");
+    const player = localStorage.getItem("player");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
         const nameValue = document.querySelector("input").value;
         _state.state.setFullName(nameValue);
-        console.log(_state.state.data);
-        _state.state.signIn().then((response)=>{
-            console.log("SIGNIN", response);
-            return _state.state.askNewRoom();
-        }).then(()=>{
-            return params.goTo("/codeRoom");
+        _state.state.signIn().then(()=>{
+            if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
+                _state.state.setStatus(player);
+                _state.state.listenRoom();
+                return params.goTo("/play");
+            });
+            else _state.state.askNewRoom().then(()=>{
+                _state.state.listenRoom();
+                return params.goTo("/codeRoom");
+            });
         });
     });
     return div;
@@ -725,15 +753,15 @@ const state = {
         const lastStorageState = localStorage.getItem("state");
         return JSON.parse(lastStorageState);
     },
-    listenRoom () {
+    listenRoom (cb) {
         const currentState1 = this.getState();
         const chatroomsRef = _database.ref(_rtdb.rtdb, "/rooms/" + currentState1.rtdbRoomId);
         _database.onValue(chatroomsRef, (snapshot)=>{
             const currentState = this.getState();
             const value = snapshot.val();
             currentState.rtdbData = value;
-            console.log(value);
             this.setState(currentState);
+            if (!!value.jugador2?.status && !!cb) cb();
         });
     },
     getState () {
@@ -741,7 +769,8 @@ const state = {
     },
     setFullName (fullName) {
         const currentState = this.getState();
-        currentState.fullName = fullName, this.setState(currentState);
+        currentState.fullName = fullName;
+        return this.setState(currentState);
     },
     signIn (callback) {
         const currentState = this.getState();
@@ -798,14 +827,13 @@ const state = {
         this.data = newState;
         for (const cb of this.listeners)cb();
         localStorage.setItem("state", JSON.stringify(newState));
-        console.log("Soy el state, he cambiado ", this.data);
+        // console.log("Soy el state, he cambiado ", this.data);
         return Promise.resolve();
     },
     subscribe (callback) {
         this.listeners.push(callback);
     },
-    setStatus (callback) {
-        console.log("SOY EL SET ROOM");
+    setStatus (player) {
         const currentState = this.getState();
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
@@ -815,6 +843,7 @@ const state = {
             },
             body: JSON.stringify({
                 status: true,
+                player,
                 rtdbRoomId
             })
         }).then((res)=>{
@@ -824,8 +853,7 @@ const state = {
             return this.setState(currentState);
         });
     },
-    setPlay (choise, name, online) {
-        console.log("SOY EL SET Play");
+    setPlay (params) {
         const currentState = this.getState();
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
@@ -834,10 +862,11 @@ const state = {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                choise: choise,
-                name: name,
-                online: online,
-                rtdbRoomId
+                choise: params.choise,
+                name: params.name,
+                online: params.online,
+                rtdbRoomId,
+                player: params.player
             })
         }).then((res)=>{
             return res.json();
@@ -845,6 +874,55 @@ const state = {
             currentState.rtdbData = data;
             return this.setState(currentState);
         });
+    },
+    getRtdbRoomId () {
+        const currentState = this.getState();
+        const roomId = currentState.roomId;
+        return fetch(API_BASE_URL + "/rtdbRoomId", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                roomId: roomId
+            })
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            currentState.rtdbRoomId = data.rtdbRoomId;
+            return state.setState(currentState);
+        });
+    },
+    whoWins (myPlay, oponent) {
+        if (myPlay === "papel" && oponent === "piedra") return "gane";
+        if (myPlay === "piedra" && oponent === "tijera") return "gane";
+        if (myPlay === "tijera" && oponent === "papel") return "gane";
+        if (myPlay === "piedra" && oponent === undefined) return "empate";
+        if (myPlay === oponent) return "empate";
+        else return "perdi";
+    },
+    win () {
+        if (!!sessionStorage.getItem("vos")) {
+            const value = sessionStorage.getItem("vos");
+            return sessionStorage.setItem("vos", JSON.stringify(Number(value) + 1));
+        }
+        sessionStorage.setItem("vos", "1");
+    },
+    lost () {
+        if (!!sessionStorage.getItem("maquina")) {
+            const value = sessionStorage.getItem("maquina");
+            sessionStorage.setItem("maquina", JSON.stringify(Number(value) + 1));
+        } else sessionStorage.setItem("maquina", "1");
+    },
+    historyVos () {
+        let value = JSON.parse(sessionStorage.getItem("vos"));
+        if (value === null) return value = 0;
+        return value;
+    },
+    historyMaquina () {
+        let value = JSON.parse(sessionStorage.getItem("maquina"));
+        if (value === null) return value = 0;
+        return value;
     }
 };
 
@@ -15501,7 +15579,7 @@ function codeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        
+        <button-play class="button"></button-play>
         <div class="code"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -15511,22 +15589,19 @@ function codeRoom(params) {
     `;
     const codigo = JSON.parse(localStorage.getItem("state"));
     const codeRoom1 = div.querySelector(".code");
-    codigo.roomId && (codeRoom1.textContent = `Comparti el siguiente codigo con tu amigo: ${codigo.roomId}`);
+    codigo.roomId && (codeRoom1.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`);
+    // const button = document.querySelector("code");
+    // button.addEventListener("click", () => {
+    //     console.log("soy el click");
+    //     codeRoom.textContent = "Esperando a ... apriete Jugar";
+    //     codeRoom.innerHTML = "Esperando a ... apriete Jugar";
+    // });
+    const goToRoom = ()=>{
+        return params.goTo("/play");
+    };
     _state.state.accessToRoom().then(()=>{
-        return _state.state.setStatus();
-    }).then(()=>{
-        return _state.state.listenRoom();
-    }).then(()=>{
-        console.log("SOY DEL LOCAL", _state.state.data.rtdbData[0]);
-        if (!_state.state.data.rtdbData.jugador1) params.goTo("/play");
+        return _state.state.listenRoom(goToRoom);
     });
-    // button.addEventListener("click",(event)=>{
-    //     event.preventDefault()
-    //     const nameValue = document.querySelector("input").value
-    //     state.setFullName(nameValue)
-    //     console.log(state.data)
-    //     // params.goTo("/play")
-    // })
     return div;
 }
 
@@ -15554,78 +15629,83 @@ function play(params) {
     <tijera-comp></tijera-comp>
     </div>
     `;
-    function jugadaMaquina() {
-        const opciones = [
-            "piedra",
-            "papel",
-            "tijera"
-        ];
-        const resultado = opciones[Math.floor(Math.random() * opciones.length)];
-        return resultado;
-    }
     const piedra = div.querySelector("piedra-comp");
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
+    const player = localStorage.getItem("player");
     piedra.addEventListener("click", (event)=>{
         event.preventDefault();
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
-        _state.state.setPlay("piedra", "Ayrton", true);
-        console.log("SOY EL EVENTO PIEDRA", _state.state.data);
-        const playMaquina = jugadaMaquina();
-    // const resultado = state.whoWins("piedra", playMaquina);
-    //     setTimeout(() => {
-    //         if (resultado === "gane") {
-    //             // state.win();
-    //             return params.goTo("/result/jugada", {
-    //                 resultado: "ganaste",
-    //                 player: "piedra",
-    //                 machine: playMaquina,
-    //             });
-    //         }
-    //         if (resultado === "empate") {
-    //             return params.goTo("/result/jugada", {
-    //                 resultado: "empate",
-    //                 player: "piedra",
-    //                 machine: playMaquina,
-    //             });
-    //         } else {
-    //             state.lost();
-    //             return params.goTo("/result/jugada", {
-    //                 resultado: "perdiste",
-    //                 player: "piedra",
-    //                 machine: playMaquina,
-    //             });
-    //         }
-    //     }, 700);
-    });
-    papel.addEventListener("click", (event)=>{
-        event.preventDefault();
-        piedra.style.opacity = "0.4";
-        tijera.style.opacity = "0.4";
-        const playMaquina = jugadaMaquina();
-        const resultado = _state.state.whoWins("papel", playMaquina);
-        console.log(resultado);
+        const name = _state.state.data.fullName;
+        _state.state.setPlay({
+            choise: "piedra",
+            name: name,
+            online: true,
+            player: Number(player)
+        });
+        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
+        const jugador2 = undefined;
+        const resultado = _state.state.whoWins(jugador1, "papel");
         setTimeout(()=>{
             if (resultado === "gane") {
                 _state.state.win();
                 return params.goTo("/result/jugada", {
                     resultado: "ganaste",
-                    player: "papel",
-                    machine: playMaquina
+                    jugador1: "piedra",
+                    jugador2: "papel"
                 });
             }
             if (resultado === "empate") return params.goTo("/result/jugada", {
                 resultado: "empate",
-                player: "papel",
-                machine: playMaquina
+                jugador1: "piedra",
+                jugador2: jugador2
             });
             else {
                 _state.state.lost();
                 return params.goTo("/result/jugada", {
                     resultado: "perdiste",
-                    player: "papel",
-                    machine: playMaquina
+                    jugador1: "piedra",
+                    jugador2: jugador2
+                });
+            }
+        }, 700);
+    });
+    papel.addEventListener("click", (event)=>{
+        event.preventDefault();
+        piedra.style.opacity = "0.4";
+        tijera.style.opacity = "0.4";
+        const name = _state.state.data.fullName;
+        _state.state.setPlay({
+            choise: "papel",
+            name: name,
+            online: true,
+            player: Number(player)
+        });
+        console.log("SOY EL EVENTO PAPEL", _state.state.data);
+        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
+        const jugador2 = undefined;
+        const resultado = _state.state.whoWins(jugador1, jugador2);
+        setTimeout(()=>{
+            if (resultado === "gane") {
+                _state.state.win();
+                return params.goTo("/result/jugada", {
+                    resultado: "ganaste",
+                    jugador1: "papel",
+                    jugador2: jugador2
+                });
+            }
+            if (resultado === "empate") return params.goTo("/result/jugada", {
+                resultado: "empate",
+                jugador1: "papel",
+                jugador2: jugador2
+            });
+            else {
+                _state.state.lost();
+                return params.goTo("/result/jugada", {
+                    resultado: "perdiste",
+                    jugador1: "papel",
+                    jugador2: jugador2
                 });
             }
         }, 700);
@@ -15634,28 +15714,37 @@ function play(params) {
         event.preventDefault();
         papel.style.opacity = "0.4";
         piedra.style.opacity = "0.4";
-        const playMaquina = jugadaMaquina();
-        const resultado = _state.state.whoWins("tijera", playMaquina);
+        const name = _state.state.data.fullName;
+        _state.state.setPlay({
+            choise: "tijera",
+            name: name,
+            online: true,
+            player: Number(player)
+        });
+        console.log("SOY EL EVENTO TIJERA", _state.state.data);
+        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
+        const jugador2 = undefined;
+        const resultado = _state.state.whoWins(jugador1, jugador2);
         setTimeout(()=>{
             if (resultado === "gane") {
                 _state.state.win();
                 return params.goTo("/result/jugada", {
                     resultado: "ganaste",
-                    player: "tijera",
-                    machine: playMaquina
+                    jugador1: "tijera",
+                    jugador2: jugador2
                 });
             }
             if (resultado === "empate") return params.goTo("/result/jugada", {
                 resultado: "empate",
-                player: "tijera",
-                machine: playMaquina
+                jugador1: "tijera",
+                jugador2: jugador2
             });
             else {
                 _state.state.lost();
                 return params.goTo("/result/jugada", {
                     resultado: "perdiste",
-                    player: "tijera",
-                    machine: playMaquina
+                    jugador1: "tijera",
+                    jugador2: jugador2
                 });
             }
         }, 700);
@@ -15663,7 +15752,188 @@ function play(params) {
     return div;
 }
 
-},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g1OJX":[function(require,module,exports) {
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cyFSo":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "yourCodeRoom", ()=>yourCodeRoom
+);
+var _state = require("../../state");
+function yourCodeRoom(params) {
+    const div = document.createElement("div");
+    div.className = "contenedor";
+    div.innerHTML = `
+        estas en el code room
+        <button-play></button-play>
+        <input class="name"> </input>
+        <div class="container">
+        <piedra-comp></piedra-comp>
+        <papel-comp></papel-comp>
+        <tijera-comp></tijera-comp>
+        </div>
+    `;
+    const button = div.querySelector("button-play");
+    button.addEventListener("click", (event)=>{
+        event.preventDefault();
+        const codeValue = document.querySelector("input").value;
+        const currentState = _state.state.getState();
+        currentState.roomId = codeValue;
+        _state.state.setState(currentState)// tengo que setear el code room y quedarme escuchando ese room
+        .then(()=>{
+            _state.state.getRtdbRoomId();
+            _state.state.listenRoom();
+            console.log(_state.state.data);
+            return params.goTo("/yourName");
+        });
+    });
+    return div;
+}
+
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bz7EC":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "jugada", ()=>jugada
+);
+function jugada(params) {
+    const div = document.createElement("div");
+    div.className = "container-jugada";
+    const jugada1 = {
+        papel: `<papel-comp width="140px" height="250px"></papel-comp>`,
+        piedra: `<piedra-comp width="140px" height="250px"></piedra-comp>`,
+        tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`
+    };
+    div.innerHTML = `
+    ${jugada1[history.state.jugador2]}
+    ${jugada1[history.state.jugador1]}
+    `;
+    div.firstElementChild.className = "maquina";
+    setTimeout(()=>{
+        return params.goTo(`/result/${history.state.resultado}`, history.state);
+    }, 2000);
+    return div;
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kn60J":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "ganaste", ()=>ganaste
+);
+const image = require("url:../../images/ganaste.svg");
+function ganaste(params) {
+    const div = document.createElement("div");
+    div.className = "container-ganaste";
+    console.log(history.state.resultado);
+    console.log(history.state.player);
+    console.log(history.state.machine);
+    div.innerHTML = `
+        <img src="${image}">
+        <history-comp></history-comp>
+        <button-playagain></button-playagain>
+    
+        `;
+    const button = div.querySelector("button-playagain");
+    button.addEventListener("click", (event)=>{
+        event.preventDefault();
+        params.goTo("/play");
+    });
+    return div;
+}
+
+},{"url:../../images/ganaste.svg":"wLBg9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"wLBg9":[function(require,module,exports) {
+module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "ganaste.96552889.svg" + "?" + Date.now();
+
+},{"./helpers/bundle-url":"lgJ39"}],"lgJ39":[function(require,module,exports) {
+"use strict";
+var bundleURL = {};
+function getBundleURLCached(id) {
+    var value = bundleURL[id];
+    if (!value) {
+        value = getBundleURL();
+        bundleURL[id] = value;
+    }
+    return value;
+}
+function getBundleURL() {
+    try {
+        throw new Error();
+    } catch (err) {
+        var matches = ('' + err.stack).match(/(https?|file|ftp|(chrome|moz)-extension):\/\/[^)\n]+/g);
+        if (matches) // The first two stack frames will be this function and getBundleURLCached.
+        // Use the 3rd one, which will be a runtime in the original bundle.
+        return getBaseURL(matches[2]);
+    }
+    return '/';
+}
+function getBaseURL(url) {
+    return ('' + url).replace(/^((?:https?|file|ftp|(chrome|moz)-extension):\/\/.+)\/[^/]+$/, '$1') + '/';
+} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+function getOrigin(url) {
+    var matches = ('' + url).match(/(https?|file|ftp|(chrome|moz)-extension):\/\/[^/]+/);
+    if (!matches) throw new Error('Origin not found');
+    return matches[0];
+}
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+
+},{}],"kKjvO":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "perdiste", ()=>perdiste
+);
+const image = require("url:../../images/perdiste.svg");
+function perdiste(params) {
+    const div = document.createElement("div");
+    div.className = "container-perdiste";
+    console.log(history.state.resultado);
+    console.log(history.state.player);
+    console.log(history.state.machine);
+    div.innerHTML = `
+        <img src="${image}" >
+        <history-comp></history-comp>
+        <button-playagain></button-playagain>
+
+        `;
+    const button = div.querySelector("button-playagain");
+    button.addEventListener("click", (event)=>{
+        event.preventDefault();
+        params.goTo("/play");
+    });
+    return div;
+}
+
+},{"url:../../images/perdiste.svg":"vIxOV","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"vIxOV":[function(require,module,exports) {
+module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "perdiste.fda5a98d.svg" + "?" + Date.now();
+
+},{"./helpers/bundle-url":"lgJ39"}],"18BHo":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "empate", ()=>empate
+);
+const image = require("url:../../images/ganaste.svg");
+const giphy = require("url:../../images/giphy.gif");
+function empate(params) {
+    const div = document.createElement("div");
+    div.className = "container-empate";
+    console.log(history.state.resultado);
+    console.log(history.state.player);
+    console.log(history.state.machine);
+    div.innerHTML = `
+        <img class="giphy" src="${giphy}" alt="">
+        <button-playagain></button-playagain>
+    
+        `;
+    const button = div.querySelector("button-playagain");
+    button.addEventListener("click", (event)=>{
+        event.preventDefault();
+        params.goTo("/play");
+    });
+    return div;
+}
+
+},{"url:../../images/ganaste.svg":"wLBg9","url:../../images/giphy.gif":"1WLf1","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WLf1":[function(require,module,exports) {
+module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "giphy.b0c3f1e3.gif" + "?" + Date.now();
+
+},{"./helpers/bundle-url":"lgJ39"}],"g1OJX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "titleText", ()=>titleText
@@ -15745,41 +16015,7 @@ function papel() {
 },{"url:../../images/papel.svg":"aFOsz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"aFOsz":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "papel.f2946da3.svg" + "?" + Date.now();
 
-},{"./helpers/bundle-url":"lgJ39"}],"lgJ39":[function(require,module,exports) {
-"use strict";
-var bundleURL = {};
-function getBundleURLCached(id) {
-    var value = bundleURL[id];
-    if (!value) {
-        value = getBundleURL();
-        bundleURL[id] = value;
-    }
-    return value;
-}
-function getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ('' + err.stack).match(/(https?|file|ftp|(chrome|moz)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return getBaseURL(matches[2]);
-    }
-    return '/';
-}
-function getBaseURL(url) {
-    return ('' + url).replace(/^((?:https?|file|ftp|(chrome|moz)-extension):\/\/.+)\/[^/]+$/, '$1') + '/';
-} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function getOrigin(url) {
-    var matches = ('' + url).match(/(https?|file|ftp|(chrome|moz)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error('Origin not found');
-    return matches[0];
-}
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-
-},{}],"4rTTw":[function(require,module,exports) {
+},{"./helpers/bundle-url":"lgJ39"}],"4rTTw":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "piedra", ()=>piedra
