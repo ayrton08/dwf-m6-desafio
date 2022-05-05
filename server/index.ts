@@ -128,36 +128,30 @@ app.get("/room/:roomId", (req, res) => {
 
 app.post("/jugadas", function (req, res) {
     const { rtdbRoomId, player } = req.body;
-    console.log("PLAYER", player);
 
     if (player === "1") {
+        console.log("PLAYER", req.body);
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
 
-        roomRef.update(
-            {
-                status: req.body.status,
-            },
-            function () {
-                res.json("todo ok");
-            }
-        );
+        roomRef.update({
+            status: `${req.body.status}`,
+            online: `${req.body.online}`,
+            fullName: `${req.body.name}`,
+        });
     }
     if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
         console.log("VENGODEL BACK");
-        roomRef.update(
-            {
-                status: `${req.body.status}`,
-            },
-            function () {
-                res.json("todo ok");
-            }
-        );
+        roomRef.update({
+            status: `${req.body.status}`,
+            online: `${req.body.online}`,
+            fullName: `${req.body.name}`,
+        });
     }
 });
 
 app.post("/play", function (req, res) {
-    const { rtdbRoomId, player } = req.body;
+    const { rtdbRoomId, player, } = req.body;
     console.log("SOY EL BODY", req.body);
 
     if (player === 1) {
@@ -167,7 +161,6 @@ app.post("/play", function (req, res) {
             {
                 choise: req.body.choise,
                 name: req.body.name,
-                online: req.body.online,
             },
             function () {
                 return data[0];
@@ -181,7 +174,6 @@ app.post("/play", function (req, res) {
             {
                 choise: req.body.choise,
                 name: req.body.name,
-                online: req.body.online,
             },
             function () {
                 return data[1];

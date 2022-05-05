@@ -568,6 +568,8 @@ var _ganaste = require("./pages/result/ganaste");
 var _perdiste = require("./pages/result/perdiste");
 var _empate = require("./pages/result/empate");
 var _index2 = require("./pages/jugada/index");
+var _waitRoom = require("./pages/waitRoom");
+var _waitPlayer = require("./pages/waitPlayer");
 const routes = [
     {
         path: /\/welcome/,
@@ -588,6 +590,14 @@ const routes = [
     {
         path: /\/yourCodeRoom/,
         component: _yourCodeRoom.yourCodeRoom
+    },
+    {
+        path: /\/waitRoom/,
+        component: _waitRoom.waitRoom
+    },
+    {
+        path: /\/waitPlayer/,
+        component: _waitPlayer.waitPlayer
     },
     {
         path: /\/result\/perdiste/,
@@ -629,7 +639,7 @@ function initRouter(container) {
     };
 }
 
-},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA","./pages/yourCodeRoom":"cyFSo","./pages/jugada/index":"bz7EC","./pages/result/ganaste":"kn60J","./pages/result/perdiste":"kKjvO","./pages/result/empate":"18BHo"}],"SIkvo":[function(require,module,exports) {
+},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA","./pages/yourCodeRoom":"cyFSo","./pages/result/ganaste":"kn60J","./pages/result/perdiste":"kKjvO","./pages/result/empate":"18BHo","./pages/jugada/index":"bz7EC","./pages/waitRoom":"ae2m5","./pages/waitPlayer":"jcfDe"}],"SIkvo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "welcomePage", ()=>welcomePage
@@ -719,12 +729,13 @@ function yourName(params) {
         _state.state.setFullName(nameValue);
         _state.state.signIn().then(()=>{
             if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
-                _state.state.setStatus(player);
                 _state.state.listenRoom();
-                return params.goTo("/play");
+                _state.state.setStatus(player, true);
+                return params.goTo("/waitRoom");
             });
             else _state.state.askNewRoom().then(()=>{
                 _state.state.listenRoom();
+                _state.state.setStatus(player, true);
                 return params.goTo("/codeRoom");
             });
         });
@@ -746,22 +757,23 @@ const state = {
         userId: "",
         rtdbRoomId: "",
         roomId: "",
-        rtdbData: {}
+        rtdbData: {},
+        playerOneWaiting: true
     },
     listeners: [],
     init () {
         const lastStorageState = localStorage.getItem("state");
         return JSON.parse(lastStorageState);
     },
-    listenRoom (cb) {
+    listenRoom () {
         const currentState1 = this.getState();
         const chatroomsRef = _database.ref(_rtdb.rtdb, "/rooms/" + currentState1.rtdbRoomId);
         _database.onValue(chatroomsRef, (snapshot)=>{
             const currentState = this.getState();
             const value = snapshot.val();
+            console.log("SOY EL LISTEMROOM", value);
             currentState.rtdbData = value;
             this.setState(currentState);
-            if (!!value.jugador2?.status && !!cb) cb();
         });
     },
     getState () {
@@ -833,7 +845,7 @@ const state = {
     subscribe (callback) {
         this.listeners.push(callback);
     },
-    setStatus (player) {
+    setStatus (player, online) {
         const currentState = this.getState();
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
@@ -843,10 +855,13 @@ const state = {
             },
             body: JSON.stringify({
                 status: true,
+                online,
                 player,
+                name: currentState.fullName,
                 rtdbRoomId
             })
         }).then((res)=>{
+            console.log("la respuesta", res);
             return res.json();
         }).then((data)=>{
             currentState.rtdbData = data;
@@ -864,7 +879,6 @@ const state = {
             body: JSON.stringify({
                 choise: params.choise,
                 name: params.name,
-                online: params.online,
                 rtdbRoomId,
                 player: params.player
             })
@@ -15579,7 +15593,6 @@ function codeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <button-play class="button"></button-play>
         <div class="code"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -15590,17 +15603,16 @@ function codeRoom(params) {
     const codigo = JSON.parse(localStorage.getItem("state"));
     const codeRoom1 = div.querySelector(".code");
     codigo.roomId && (codeRoom1.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`);
-    // const button = document.querySelector("code");
-    // button.addEventListener("click", () => {
-    //     console.log("soy el click");
-    //     codeRoom.textContent = "Esperando a ... apriete Jugar";
-    //     codeRoom.innerHTML = "Esperando a ... apriete Jugar";
-    // });
     const goToRoom = ()=>{
-        return params.goTo("/play");
+        const data = _state.state.getState();
+        if (data.rtdbData?.jugador2?.status === "true" && data.playerOneWaiting) {
+            data.playerOneWaiting = false;
+            return params.goTo("/waitRoom");
+        }
     };
     _state.state.accessToRoom().then(()=>{
-        return _state.state.listenRoom(goToRoom);
+        _state.state.subscribe(goToRoom);
+        return _state.state.listenRoom();
     });
     return div;
 }
@@ -15633,6 +15645,9 @@ function play(params) {
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
     const player = localStorage.getItem("player");
+    // state.listenRoom()
+    const jugador1 = _state.state.data.rtdbData.jugador1.choise;
+    const jugador2 = _state.state.data.rtdbData.jugador2.choise;
     piedra.addEventListener("click", (event)=>{
         event.preventDefault();
         papel.style.opacity = "0.4";
@@ -15641,35 +15656,35 @@ function play(params) {
         _state.state.setPlay({
             choise: "piedra",
             name: name,
-            online: true,
             player: Number(player)
         });
-        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
-        const jugador2 = undefined;
-        const resultado = _state.state.whoWins(jugador1, "papel");
-        setTimeout(()=>{
-            if (resultado === "gane") {
-                _state.state.win();
-                return params.goTo("/result/jugada", {
-                    resultado: "ganaste",
-                    jugador1: "piedra",
-                    jugador2: "papel"
-                });
-            }
-            if (resultado === "empate") return params.goTo("/result/jugada", {
-                resultado: "empate",
-                jugador1: "piedra",
-                jugador2: jugador2
-            });
-            else {
-                _state.state.lost();
-                return params.goTo("/result/jugada", {
-                    resultado: "perdiste",
-                    jugador1: "piedra",
-                    jugador2: jugador2
-                });
-            }
-        }, 700);
+        console.log("jugador 1", jugador1);
+        console.log("jugador 2", jugador2);
+    // const resultado = state.whoWins( jugador1, jugador2);
+    // setTimeout(() => {
+    //     if (resultado === "gane") {
+    //         state.win();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "ganaste",
+    //             jugador1: "piedra",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    //     if (resultado === "empate") {
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "empate",
+    //             jugador1: "piedra",
+    //             jugador2: jugador2,
+    //         });
+    //     } else {
+    //         state.lost();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "perdiste",
+    //             jugador1: "piedra",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    // }, 700);
     });
     papel.addEventListener("click", (event)=>{
         event.preventDefault();
@@ -15679,36 +15694,35 @@ function play(params) {
         _state.state.setPlay({
             choise: "papel",
             name: name,
-            online: true,
             player: Number(player)
         });
-        console.log("SOY EL EVENTO PAPEL", _state.state.data);
-        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
-        const jugador2 = undefined;
-        const resultado = _state.state.whoWins(jugador1, jugador2);
-        setTimeout(()=>{
-            if (resultado === "gane") {
-                _state.state.win();
-                return params.goTo("/result/jugada", {
-                    resultado: "ganaste",
-                    jugador1: "papel",
-                    jugador2: jugador2
-                });
-            }
-            if (resultado === "empate") return params.goTo("/result/jugada", {
-                resultado: "empate",
-                jugador1: "papel",
-                jugador2: jugador2
-            });
-            else {
-                _state.state.lost();
-                return params.goTo("/result/jugada", {
-                    resultado: "perdiste",
-                    jugador1: "papel",
-                    jugador2: jugador2
-                });
-            }
-        }, 700);
+        console.log("jugador 1", jugador1);
+        console.log("jugador 2", jugador2);
+    // const resultado = state.whoWins( jugador1, jugador2);
+    // setTimeout(() => {
+    //     if (resultado === "gane") {
+    //         state.win();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "ganaste",
+    //             jugador1: "papel",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    //     if (resultado === "empate") {
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "empate",
+    //             jugador1: "papel",
+    //             jugador2: jugador2,
+    //         });
+    //     } else {
+    //         state.lost();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "perdiste",
+    //             jugador1: "papel",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    // }, 700);
     });
     tijera.addEventListener("click", (event)=>{
         event.preventDefault();
@@ -15718,36 +15732,35 @@ function play(params) {
         _state.state.setPlay({
             choise: "tijera",
             name: name,
-            online: true,
             player: Number(player)
         });
-        console.log("SOY EL EVENTO TIJERA", _state.state.data);
-        const jugador1 = _state.state.getState().rtdbData.jugador1.choise;
-        const jugador2 = undefined;
-        const resultado = _state.state.whoWins(jugador1, jugador2);
-        setTimeout(()=>{
-            if (resultado === "gane") {
-                _state.state.win();
-                return params.goTo("/result/jugada", {
-                    resultado: "ganaste",
-                    jugador1: "tijera",
-                    jugador2: jugador2
-                });
-            }
-            if (resultado === "empate") return params.goTo("/result/jugada", {
-                resultado: "empate",
-                jugador1: "tijera",
-                jugador2: jugador2
-            });
-            else {
-                _state.state.lost();
-                return params.goTo("/result/jugada", {
-                    resultado: "perdiste",
-                    jugador1: "tijera",
-                    jugador2: jugador2
-                });
-            }
-        }, 700);
+        console.log("jugador 1", jugador1);
+        console.log("jugador 2", jugador2);
+    // const resultado = state.whoWins( jugador1, jugador2);
+    // setTimeout(() => {
+    //     if (resultado === "gane") {
+    //         state.win();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "ganaste",
+    //             jugador1: "tijera",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    //     if (resultado === "empate") {
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "empate",
+    //             jugador1: "tijera",
+    //             jugador2: jugador2,
+    //         });
+    //     } else {
+    //         state.lost();
+    //         return params.goTo("/result/jugada", {
+    //             resultado: "perdiste",
+    //             jugador1: "tijera",
+    //             jugador2: jugador2,
+    //         });
+    //     }
+    // }, 700);
     });
     return div;
 }
@@ -15788,31 +15801,7 @@ function yourCodeRoom(params) {
     return div;
 }
 
-},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"bz7EC":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "jugada", ()=>jugada
-);
-function jugada(params) {
-    const div = document.createElement("div");
-    div.className = "container-jugada";
-    const jugada1 = {
-        papel: `<papel-comp width="140px" height="250px"></papel-comp>`,
-        piedra: `<piedra-comp width="140px" height="250px"></piedra-comp>`,
-        tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`
-    };
-    div.innerHTML = `
-    ${jugada1[history.state.jugador2]}
-    ${jugada1[history.state.jugador1]}
-    `;
-    div.firstElementChild.className = "maquina";
-    setTimeout(()=>{
-        return params.goTo(`/result/${history.state.resultado}`, history.state);
-    }, 2000);
-    return div;
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kn60J":[function(require,module,exports) {
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"kn60J":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ganaste", ()=>ganaste
@@ -15933,7 +15922,109 @@ function empate(params) {
 },{"url:../../images/ganaste.svg":"wLBg9","url:../../images/giphy.gif":"1WLf1","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WLf1":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "giphy.b0c3f1e3.gif" + "?" + Date.now();
 
-},{"./helpers/bundle-url":"lgJ39"}],"g1OJX":[function(require,module,exports) {
+},{"./helpers/bundle-url":"lgJ39"}],"bz7EC":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "jugada", ()=>jugada
+);
+var _state = require("../../state");
+function jugada(params) {
+    const div = document.createElement("div");
+    div.className = "container-jugada";
+    const jugada1 = {
+        papel: `<papel-comp width="140px" height="250px"></papel-comp>`,
+        piedra: `<piedra-comp width="140px" height="250px"></piedra-comp>`,
+        tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`
+    };
+    _state.state.getState();
+    div.textContent = "WAITING";
+    if (_state.state.data.rtdbData.jugador1.choise) div.innerHTML = `
+        ${jugada1[history.state.jugador1]}
+        `;
+    if (_state.state.data.rtdbData.jugador2.choise) div.innerHTML = `
+        ${jugada1[history.state.jugador2]}`;
+    const jugador1 = _state.state.data.rtdbData.jugador1.choise;
+    const jugador2 = _state.state.data.rtdbData.jugador2.choise;
+    const resultado = _state.state.whoWins(jugador1, jugador2);
+    div.firstElementChild.className = "maquina";
+    setTimeout(()=>{
+        if (resultado === "gane") {
+            _state.state.win();
+            return params.goTo("/result/ganaste");
+        }
+        if (resultado === "empate") return params.goTo("/result/empate");
+        else {
+            _state.state.lost();
+            return params.goTo("/result/perdiste");
+        }
+    // return params.goTo(`/result/${history.state.resultado}`, history.state);
+    }, 2000);
+    return div;
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"ae2m5":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "waitRoom", ()=>waitRoom
+);
+var _state = require("../../state");
+function waitRoom(params) {
+    const div = document.createElement("button");
+    div.textContent = "jugar";
+    // div.className = "contenedor";
+    // div.innerHTML = `
+    //     <div id="button-jugar">
+    //     <button-play></button-play>
+    //     </div>
+    //     <div class="container">
+    //     <piedra-comp></piedra-comp>
+    //     <papel-comp></papel-comp>
+    //     <tijera-comp></tijera-comp>
+    //     </div>
+    // `;
+    // const button = document.querySelector("#button-jugar");
+    const player = localStorage.getItem("player");
+    div.addEventListener("click", ()=>{
+        _state.state.setStatus(player, true);
+        params.goTo("/waitPlayer");
+    });
+    console.log("buton", div);
+    return div;
+}
+
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"jcfDe":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "waitPlayer", ()=>waitPlayer
+);
+var _state = require("../../state");
+function waitPlayer(params) {
+    const nameOponent = _state.state.data.rtdbData.jugador2.name;
+    const div = document.createElement("div");
+    div.className = "contenedor";
+    div.innerHTML = `
+        <div>Esperando a que ${nameOponent} presione ¡Jugar!... </div>
+        <div class="container">
+        <piedra-comp></piedra-comp>
+        <papel-comp></papel-comp>
+        <tijera-comp></tijera-comp>
+        </div>
+    `;
+    _state.state.listenRoom();
+    const goToPlay = ()=>{
+        const data = _state.state.getState();
+        if (data.rtdbData?.jugador1?.online === "true" && data.rtdbData?.jugador2?.online === "true") {
+            data.rtdbData.jugador1.online = false;
+            data.rtdbData.jugador2.online = false;
+            _state.state.setState(data);
+            return params.goTo("/play");
+        }
+    };
+    _state.state.subscribe(goToPlay);
+    return div;
+}
+
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"g1OJX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "titleText", ()=>titleText

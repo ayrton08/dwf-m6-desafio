@@ -16,7 +16,8 @@ export function yourName(params) {
     const button = div.querySelector("button-play");
 
     const player = localStorage.getItem("player")
-
+    
+    
     button.addEventListener("click", (event) => {
         event.preventDefault();
         const nameValue = document.querySelector("input").value;
@@ -30,14 +31,17 @@ export function yourName(params) {
                 state.getRtdbRoomId().then(() => {
                     
                     
-                    state.setStatus(player)
                     state.listenRoom();
+                    state.setStatus(player,true)
                     
-                    return params.goTo("/play");
+                    
+                    return params.goTo("/waitRoom");
                 });
             } else {
                 state.askNewRoom().then(() => {
                     state.listenRoom();
+                    state.setStatus(player,true)
+
                     return params.goTo("/codeRoom");
                 });
             }

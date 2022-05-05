@@ -12,6 +12,7 @@ const state = {
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {},
+        playerOneWaiting: true,
     },
 
     listeners: [],
@@ -21,18 +22,16 @@ const state = {
         return JSON.parse(lastStorageState);
     },
 
-    listenRoom(cb?) {
+    listenRoom() {
         const currentState = this.getState();
         const chatroomsRef = ref(rtdb, "/rooms/" + currentState.rtdbRoomId);
 
         onValue(chatroomsRef, (snapshot) => {
             const currentState = this.getState();
             const value = snapshot.val();
+            console.log("SOY EL LISTEMROOM", value);
             currentState.rtdbData = value;
             this.setState(currentState);
-            if(!!value.jugador2?.status && !!cb){
-                cb()
-            }
         });
     },
 
@@ -135,8 +134,9 @@ const state = {
         this.listeners.push(callback);
     },
 
-    setStatus(player) {
+    setStatus(player,online) {
         const currentState = this.getState();
+        
 
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
@@ -146,11 +146,15 @@ const state = {
             },
             body: JSON.stringify({
                 status: true,
+                online,
                 player,
+                name: currentState.fullName,
                 rtdbRoomId,
             }),
         })
             .then((res) => {
+                console.log("la respuesta", res);
+
                 return res.json();
             })
             .then((data) => {
@@ -162,12 +166,10 @@ const state = {
     setPlay(params: {
         choise: string;
         name: string;
-        online: Boolean;
         player: number;
     }) {
         const currentState = this.getState();
-        
-        
+
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
             method: "post",
@@ -177,7 +179,6 @@ const state = {
             body: JSON.stringify({
                 choise: params.choise,
                 name: params.name,
-                online: params.online,
                 rtdbRoomId,
                 player: params.player,
             }),

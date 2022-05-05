@@ -5,7 +5,6 @@ export function codeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <button-play class="button"></button-play>
         <div class="code"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -20,28 +19,21 @@ export function codeRoom(params) {
         ? (codeRoom.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`)
         : null;
 
-        // const button = document.querySelector("code");
-    
-        // button.addEventListener("click", () => {
-        //     console.log("soy el click");
-        //     codeRoom.textContent = "Esperando a ... apriete Jugar";
-        //     codeRoom.innerHTML = "Esperando a ... apriete Jugar";
-            
-        // });
-        const goToRoom = ()=>{
-            return params.goTo("/play")
-
+    const goToRoom = () => {
+        const data = state.getState();
+        if (
+            data.rtdbData?.jugador2?.status === "true" &&
+            data.playerOneWaiting
+        ) {
+            data.playerOneWaiting = false;
+            return params.goTo("/waitRoom");
         }
-    state
-        .accessToRoom()
-        .then(() => {
-            return state.listenRoom(goToRoom);
-        })
+    };
 
-
-
-
-
+    state.accessToRoom().then(() => {
+        state.subscribe(goToRoom);
+        return state.listenRoom();
+    });
 
     return div;
 }

@@ -14,7 +14,6 @@ export function buttonPlay() {
             const button = document.createElement("button");
 
             button.className = "root";
-
             button.innerHTML = `
                 <span>¡Jugar!</span>
                 ${this.getStyles()}    

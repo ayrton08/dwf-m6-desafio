@@ -7,6 +7,8 @@ import { ganaste } from "./pages/result/ganaste";
 import { perdiste } from "./pages/result/perdiste";
 import { empate } from "./pages/result/empate";
 import { jugada } from "./pages/jugada/index";
+import { waitRoom } from "./pages/waitRoom";
+import { waitPlayer } from "./pages/waitPlayer";
 
 const routes = [
     {
@@ -28,6 +30,14 @@ const routes = [
     {
         path: /\/yourCodeRoom/,
         component: yourCodeRoom,
+    },
+    {
+        path: /\/waitRoom/,
+        component: waitRoom,
+    },
+    {
+        path: /\/waitPlayer/,
+        component: waitPlayer,
     },
     {
         path: /\/result\/perdiste/,
