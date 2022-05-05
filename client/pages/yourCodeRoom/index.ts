@@ -33,7 +33,6 @@ export function yourCodeRoom(params) {
                 state.getRtdbRoomId()
                 state.listenRoom();
 
-                console.log(state.data);
                 return params.goTo("/yourName");
             });
     });

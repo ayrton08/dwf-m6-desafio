@@ -24,7 +24,6 @@ export function waitRoom(params) {
         
         params.goTo("/waitPlayer");
     });
-    console.log("buton", div);
 
     return div;
 }

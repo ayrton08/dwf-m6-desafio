@@ -2,7 +2,10 @@ import { createModuleResolutionCache } from "typescript";
 import { state } from "../../state";
 
 export function waitPlayer(params) {
-    const nameOponent = state.data.rtdbData.jugador2.name;
+    state.listenRoom();
+
+    const currentState = state.getState()
+    const nameOponent = currentState.rtdbData.jugador2.name;
 
     const div = document.createElement("div");
     div.className = "contenedor";
@@ -14,13 +17,12 @@ export function waitPlayer(params) {
         <tijera-comp></tijera-comp>
         </div>
     `;
-    state.listenRoom();
 
     const goToPlay = () => {
         const data = state.getState();
         if (
             data.rtdbData?.jugador1?.online === "true" &&
-            data.rtdbData?.jugador2?.online === "true"
+            data.rtdbData?.jugador2?.online === "true" && location.pathname.includes("waitPlayer")
         ) {
             data.rtdbData.jugador1.online = false;
             data.rtdbData.jugador2.online = false;

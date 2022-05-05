@@ -22,6 +22,10 @@
     transform: rotate(180deg);
   
 }
+.myself {
+    transform: rotate(360deg);
+  
+}
 
 img {
     width: 150px;

@@ -9,6 +9,7 @@ import { empate } from "./pages/result/empate";
 import { jugada } from "./pages/jugada/index";
 import { waitRoom } from "./pages/waitRoom";
 import { waitPlayer } from "./pages/waitPlayer";
+import { waitJugada } from "./pages/waitJugada";
 
 const routes = [
     {
@@ -38,6 +39,10 @@ const routes = [
     {
         path: /\/waitPlayer/,
         component: waitPlayer,
+    },
+    {
+        path: /\/waitJugada/,
+        component: waitJugada,
     },
     {
         path: /\/result\/perdiste/,

@@ -11,40 +11,47 @@ export function jugada(params) {
         tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`,
     };
 
-    state.getState();
+    const currentState = state.getState();
 
-    div.textContent = "WAITING";
+    const jugador1 = history.state.choise.jugador1;
+    const jugador2 = history.state.choise.jugador2;
 
-    if (state.data.rtdbData.jugador1.choise) {
-        div.innerHTML = `
-        ${jugada[history.state.jugador1]}
+    div.innerHTML = `
+        ${jugada[jugador1]}
+        ${jugada[jugador2]}
         `;
-    }
-    if (state.data.rtdbData.jugador2.choise) {
-        div.innerHTML = `
-        ${jugada[history.state.jugador2]}`;
-    }
 
-    const jugador1 = state.data.rtdbData.jugador1.choise;
-    const jugador2 = state.data.rtdbData.jugador2.choise;
+    const player = localStorage.getItem("player");
 
     const resultado = state.whoWins(jugador1, jugador2);
-    div.firstElementChild.className = "maquina";
 
     setTimeout(() => {
-        if (resultado === "gane") {
-            state.win();
+        if (resultado === "gane" && player === "1") {
             return params.goTo("/result/ganaste");
         }
-        if (resultado === "empate") {
-            return params.goTo("/result/empate");
-        } else {
-            state.lost();
+        if (resultado === "gane" && player === "2") {
             return params.goTo("/result/perdiste");
         }
 
-        // return params.goTo(`/result/${history.state.resultado}`, history.state);
-    }, 2000);
+        if (resultado === "empate") {
+            return params.goTo("/result/empate");
+        }
+        if (resultado === "perdi" && player === "1") {
+            return params.goTo("/result/perdiste");
+        }
+        if (resultado === "perdi" && player === "2") {
+            return params.goTo("/result/ganaste");
+        }
+    }, 700);
+
+    const playerOneStorage = localStorage.getItem("");
+
+    if (playerOneStorage === "1") {
+        div.firstElementChild.className = "maquina";
+    }
+    if (playerOneStorage === "2") {
+        div.firstElementChild.className = "myself";
+    }
 
     return div;
 }

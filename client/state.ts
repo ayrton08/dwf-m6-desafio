@@ -29,7 +29,6 @@ const state = {
         onValue(chatroomsRef, (snapshot) => {
             const currentState = this.getState();
             const value = snapshot.val();
-            console.log("SOY EL LISTEMROOM", value);
             currentState.rtdbData = value;
             this.setState(currentState);
         });
@@ -134,9 +133,8 @@ const state = {
         this.listeners.push(callback);
     },
 
-    setStatus(player,online) {
+    setStatus(player, online) {
         const currentState = this.getState();
-        
 
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
@@ -153,8 +151,6 @@ const state = {
             }),
         })
             .then((res) => {
-                console.log("la respuesta", res);
-
                 return res.json();
             })
             .then((data) => {
@@ -163,12 +159,9 @@ const state = {
             });
     },
 
-    setPlay(params: {
-        choise: string;
-        name: string;
-        player: number;
-    }) {
+    setPlay(params: { choise: string; name: string; player: number }) {
         const currentState = this.getState();
+        console.log("SOY EL SET STATE");
 
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
@@ -183,13 +176,7 @@ const state = {
                 player: params.player,
             }),
         })
-            .then((res) => {
-                return res.json();
-            })
-            .then((data) => {
-                currentState.rtdbData = data;
-                return this.setState(currentState);
-            });
+            
     },
 
     getRtdbRoomId() {
@@ -211,20 +198,17 @@ const state = {
             });
     },
 
-    whoWins(myPlay: Jugada, oponent: any) {
-        if (myPlay === "papel" && oponent === "piedra") {
+    whoWins(player1: Jugada, player2: any) {
+        if (player1 === "papel" && player2 === "piedra") {
             return "gane";
         }
-        if (myPlay === "piedra" && oponent === "tijera") {
+        if (player1 === "piedra" && player2 === "tijera") {
             return "gane";
         }
-        if (myPlay === "tijera" && oponent === "papel") {
+        if (player1 === "tijera" && player2 === "papel") {
             return "gane";
         }
-        if (myPlay === "piedra" && oponent === undefined) {
-            return "empate";
-        }
-        if (myPlay === oponent) {
+        if (player1 === player2) {
             return "empate";
         } else {
             return "perdi";

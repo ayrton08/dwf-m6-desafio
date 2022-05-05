@@ -1,30 +1,29 @@
 const image = require("url:../../images/ganaste.svg");
 const giphy = require("url:../../images/giphy.gif");
+import { state } from "../../state";
 
-
-export function empate (params) {
-    const div = document.createElement("div")
-    div.className = "container-empate"
-    
-    console.log(history.state.resultado)
-    console.log(history.state.player)
-    console.log(history.state.machine)
-
-
+export function empate(params) {
+    const div = document.createElement("div");
+    div.className = "container-empate";
 
     div.innerHTML = `
         <img class="giphy" src="${giphy}" alt="">
         <button-playagain></button-playagain>
     
-        `
-    
-    const button = div.querySelector("button-playagain")
-    button.addEventListener("click",(event)=>{
-        event.preventDefault()
-        params.goTo("/play")
-    })
+        `;
+    const name = state.data.fullName;
+    const player = Number(localStorage.getItem("player"));
+    state.setPlay({ choise: null, name: name, player: player });
+    state.setStatus(player, false);
 
+    console.log(state.data.roomId);
     
 
-    return div
+    const button = div.querySelector("button-playagain");
+    button.addEventListener("click", (event) => {
+        event.preventDefault();
+        params.goTo("/waitRoom");
+    });
+
+    return div;
 }

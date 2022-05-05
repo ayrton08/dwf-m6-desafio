@@ -570,6 +570,7 @@ var _empate = require("./pages/result/empate");
 var _index2 = require("./pages/jugada/index");
 var _waitRoom = require("./pages/waitRoom");
 var _waitPlayer = require("./pages/waitPlayer");
+var _waitJugada = require("./pages/waitJugada");
 const routes = [
     {
         path: /\/welcome/,
@@ -598,6 +599,10 @@ const routes = [
     {
         path: /\/waitPlayer/,
         component: _waitPlayer.waitPlayer
+    },
+    {
+        path: /\/waitJugada/,
+        component: _waitJugada.waitJugada
     },
     {
         path: /\/result\/perdiste/,
@@ -639,7 +644,7 @@ function initRouter(container) {
     };
 }
 
-},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA","./pages/yourCodeRoom":"cyFSo","./pages/result/ganaste":"kn60J","./pages/result/perdiste":"kKjvO","./pages/result/empate":"18BHo","./pages/jugada/index":"bz7EC","./pages/waitRoom":"ae2m5","./pages/waitPlayer":"jcfDe"}],"SIkvo":[function(require,module,exports) {
+},{"./pages/welcome/index":"SIkvo","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./pages/yourName":"cQohU","./pages/codeRoom":"9BVuu","./pages/play/index":"7u8WA","./pages/yourCodeRoom":"cyFSo","./pages/result/ganaste":"kn60J","./pages/result/perdiste":"kKjvO","./pages/result/empate":"18BHo","./pages/jugada/index":"bz7EC","./pages/waitRoom":"ae2m5","./pages/waitPlayer":"jcfDe","./pages/waitJugada":"9DYgm"}],"SIkvo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "welcomePage", ()=>welcomePage
@@ -771,7 +776,6 @@ const state = {
         _database.onValue(chatroomsRef, (snapshot)=>{
             const currentState = this.getState();
             const value = snapshot.val();
-            console.log("SOY EL LISTEMROOM", value);
             currentState.rtdbData = value;
             this.setState(currentState);
         });
@@ -861,7 +865,6 @@ const state = {
                 rtdbRoomId
             })
         }).then((res)=>{
-            console.log("la respuesta", res);
             return res.json();
         }).then((data)=>{
             currentState.rtdbData = data;
@@ -870,6 +873,7 @@ const state = {
     },
     setPlay (params) {
         const currentState = this.getState();
+        console.log("SOY EL SET STATE");
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
             method: "post",
@@ -882,11 +886,6 @@ const state = {
                 rtdbRoomId,
                 player: params.player
             })
-        }).then((res)=>{
-            return res.json();
-        }).then((data)=>{
-            currentState.rtdbData = data;
-            return this.setState(currentState);
         });
     },
     getRtdbRoomId () {
@@ -907,12 +906,11 @@ const state = {
             return state.setState(currentState);
         });
     },
-    whoWins (myPlay, oponent) {
-        if (myPlay === "papel" && oponent === "piedra") return "gane";
-        if (myPlay === "piedra" && oponent === "tijera") return "gane";
-        if (myPlay === "tijera" && oponent === "papel") return "gane";
-        if (myPlay === "piedra" && oponent === undefined) return "empate";
-        if (myPlay === oponent) return "empate";
+    whoWins (player1, player2) {
+        if (player1 === "papel" && player2 === "piedra") return "gane";
+        if (player1 === "piedra" && player2 === "tijera") return "gane";
+        if (player1 === "tijera" && player2 === "papel") return "gane";
+        if (player1 === player2) return "empate";
         else return "perdi";
     },
     win () {
@@ -15624,12 +15622,6 @@ parcelHelpers.export(exports, "play", ()=>play
 );
 var _state = require("../../state");
 function play(params) {
-    // function redireccionar() {
-    //     if (location.pathname === "/play") {
-    //         params.goTo("/instructions");
-    //     }
-    // }
-    setTimeout(()=>{}, 7000);
     const div = document.createElement("div");
     div.className = "container-play";
     div.innerHTML = `
@@ -15645,122 +15637,57 @@ function play(params) {
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
     const player = localStorage.getItem("player");
+    const goToAwaitJugada = ()=>{
+        const jugador = `jugador${player}`;
+        if (_state.state.data.rtdbData[jugador].choise && location.pathname.includes("play")) return params.goTo("/waitJugada");
+    };
     // state.listenRoom()
     const jugador1 = _state.state.data.rtdbData.jugador1.choise;
     const jugador2 = _state.state.data.rtdbData.jugador2.choise;
+    const name = _state.state.data.fullName;
     piedra.addEventListener("click", (event)=>{
         event.preventDefault();
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
-        const name = _state.state.data.fullName;
+        _state.state.subscribe(goToAwaitJugada);
         _state.state.setPlay({
             choise: "piedra",
             name: name,
             player: Number(player)
+        }).then(()=>{
+            console.log("SOY LA PROMESA");
+            return _state.state.listenRoom();
         });
         console.log("jugador 1", jugador1);
         console.log("jugador 2", jugador2);
-    // const resultado = state.whoWins( jugador1, jugador2);
-    // setTimeout(() => {
-    //     if (resultado === "gane") {
-    //         state.win();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "ganaste",
-    //             jugador1: "piedra",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    //     if (resultado === "empate") {
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "empate",
-    //             jugador1: "piedra",
-    //             jugador2: jugador2,
-    //         });
-    //     } else {
-    //         state.lost();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "perdiste",
-    //             jugador1: "piedra",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    // }, 700);
     });
     papel.addEventListener("click", (event)=>{
         event.preventDefault();
         piedra.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
-        const name = _state.state.data.fullName;
+        _state.state.subscribe(goToAwaitJugada);
         _state.state.setPlay({
             choise: "papel",
             name: name,
             player: Number(player)
+        }).then(()=>{
+            console.log("SOY LA PROMESA");
+            return _state.state.listenRoom();
         });
-        console.log("jugador 1", jugador1);
-        console.log("jugador 2", jugador2);
-    // const resultado = state.whoWins( jugador1, jugador2);
-    // setTimeout(() => {
-    //     if (resultado === "gane") {
-    //         state.win();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "ganaste",
-    //             jugador1: "papel",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    //     if (resultado === "empate") {
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "empate",
-    //             jugador1: "papel",
-    //             jugador2: jugador2,
-    //         });
-    //     } else {
-    //         state.lost();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "perdiste",
-    //             jugador1: "papel",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    // }, 700);
     });
     tijera.addEventListener("click", (event)=>{
         event.preventDefault();
         papel.style.opacity = "0.4";
         piedra.style.opacity = "0.4";
-        const name = _state.state.data.fullName;
+        _state.state.subscribe(goToAwaitJugada);
         _state.state.setPlay({
             choise: "tijera",
             name: name,
             player: Number(player)
+        }).then(()=>{
+            console.log("SOY LA PROMESA");
+            return _state.state.listenRoom();
         });
-        console.log("jugador 1", jugador1);
-        console.log("jugador 2", jugador2);
-    // const resultado = state.whoWins( jugador1, jugador2);
-    // setTimeout(() => {
-    //     if (resultado === "gane") {
-    //         state.win();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "ganaste",
-    //             jugador1: "tijera",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    //     if (resultado === "empate") {
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "empate",
-    //             jugador1: "tijera",
-    //             jugador2: jugador2,
-    //         });
-    //     } else {
-    //         state.lost();
-    //         return params.goTo("/result/jugada", {
-    //             resultado: "perdiste",
-    //             jugador1: "tijera",
-    //             jugador2: jugador2,
-    //         });
-    //     }
-    // }, 700);
     });
     return div;
 }
@@ -15794,7 +15721,6 @@ function yourCodeRoom(params) {
         .then(()=>{
             _state.state.getRtdbRoomId();
             _state.state.listenRoom();
-            console.log(_state.state.data);
             return params.goTo("/yourName");
         });
     });
@@ -15806,28 +15732,35 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ganaste", ()=>ganaste
 );
+var _state = require("../../state");
 const image = require("url:../../images/ganaste.svg");
 function ganaste(params) {
     const div = document.createElement("div");
     div.className = "container-ganaste";
-    console.log(history.state.resultado);
-    console.log(history.state.player);
-    console.log(history.state.machine);
     div.innerHTML = `
         <img src="${image}">
         <history-comp></history-comp>
         <button-playagain></button-playagain>
     
         `;
+    const name = _state.state.data.fullName;
+    const player = Number(localStorage.getItem("player"));
+    _state.state.setPlay({
+        choise: null,
+        name: name,
+        player: player
+    });
+    _state.state.setStatus(player, false);
+    console.log(_state.state.data.roomId);
     const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
-        params.goTo("/play");
+        params.goTo("/waitRoom");
     });
     return div;
 }
 
-},{"url:../../images/ganaste.svg":"wLBg9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"wLBg9":[function(require,module,exports) {
+},{"url:../../images/ganaste.svg":"wLBg9","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"wLBg9":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "ganaste.96552889.svg" + "?" + Date.now();
 
 },{"./helpers/bundle-url":"lgJ39"}],"lgJ39":[function(require,module,exports) {
@@ -15869,28 +15802,35 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "perdiste", ()=>perdiste
 );
+var _state = require("../../state");
 const image = require("url:../../images/perdiste.svg");
 function perdiste(params) {
     const div = document.createElement("div");
     div.className = "container-perdiste";
-    console.log(history.state.resultado);
-    console.log(history.state.player);
-    console.log(history.state.machine);
     div.innerHTML = `
         <img src="${image}" >
         <history-comp></history-comp>
         <button-playagain></button-playagain>
 
         `;
+    const name = _state.state.data.fullName;
+    const player = Number(localStorage.getItem("player"));
+    _state.state.setPlay({
+        choise: null,
+        name: name,
+        player: player
+    });
+    _state.state.setStatus(player, false);
+    console.log(_state.state.data.roomId);
     const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
-        params.goTo("/play");
+        params.goTo("/waitRoom");
     });
     return div;
 }
 
-},{"url:../../images/perdiste.svg":"vIxOV","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"vIxOV":[function(require,module,exports) {
+},{"url:../../images/perdiste.svg":"vIxOV","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"vIxOV":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "perdiste.fda5a98d.svg" + "?" + Date.now();
 
 },{"./helpers/bundle-url":"lgJ39"}],"18BHo":[function(require,module,exports) {
@@ -15898,28 +15838,35 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "empate", ()=>empate
 );
+var _state = require("../../state");
 const image = require("url:../../images/ganaste.svg");
 const giphy = require("url:../../images/giphy.gif");
 function empate(params) {
     const div = document.createElement("div");
     div.className = "container-empate";
-    console.log(history.state.resultado);
-    console.log(history.state.player);
-    console.log(history.state.machine);
     div.innerHTML = `
         <img class="giphy" src="${giphy}" alt="">
         <button-playagain></button-playagain>
     
         `;
+    const name = _state.state.data.fullName;
+    const player = Number(localStorage.getItem("player"));
+    _state.state.setPlay({
+        choise: null,
+        name: name,
+        player: player
+    });
+    _state.state.setStatus(player, false);
+    console.log(_state.state.data.roomId);
     const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
-        params.goTo("/play");
+        params.goTo("/waitRoom");
     });
     return div;
 }
 
-},{"url:../../images/ganaste.svg":"wLBg9","url:../../images/giphy.gif":"1WLf1","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1WLf1":[function(require,module,exports) {
+},{"url:../../images/ganaste.svg":"wLBg9","url:../../images/giphy.gif":"1WLf1","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"1WLf1":[function(require,module,exports) {
 module.exports = require('./helpers/bundle-url').getBundleURL('2V0GK') + "giphy.b0c3f1e3.gif" + "?" + Date.now();
 
 },{"./helpers/bundle-url":"lgJ39"}],"bz7EC":[function(require,module,exports) {
@@ -15936,33 +15883,29 @@ function jugada(params) {
         piedra: `<piedra-comp width="140px" height="250px"></piedra-comp>`,
         tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`
     };
-    _state.state.getState();
-    div.textContent = "WAITING";
-    if (_state.state.data.rtdbData.jugador1.choise) div.innerHTML = `
-        ${jugada1[history.state.jugador1]}
+    const currentState = _state.state.getState();
+    const jugador1 = history.state.choise.jugador1;
+    const jugador2 = history.state.choise.jugador2;
+    div.innerHTML = `
+        ${jugada1[jugador1]}
+        ${jugada1[jugador2]}
         `;
-    if (_state.state.data.rtdbData.jugador2.choise) div.innerHTML = `
-        ${jugada1[history.state.jugador2]}`;
-    const jugador1 = _state.state.data.rtdbData.jugador1.choise;
-    const jugador2 = _state.state.data.rtdbData.jugador2.choise;
+    const player = localStorage.getItem("player");
     const resultado = _state.state.whoWins(jugador1, jugador2);
-    div.firstElementChild.className = "maquina";
     setTimeout(()=>{
-        if (resultado === "gane") {
-            _state.state.win();
-            return params.goTo("/result/ganaste");
-        }
+        if (resultado === "gane" && player === "1") return params.goTo("/result/ganaste");
+        if (resultado === "gane" && player === "2") return params.goTo("/result/perdiste");
         if (resultado === "empate") return params.goTo("/result/empate");
-        else {
-            _state.state.lost();
-            return params.goTo("/result/perdiste");
-        }
-    // return params.goTo(`/result/${history.state.resultado}`, history.state);
-    }, 2000);
+        if (resultado === "perdi" && player === "1") return params.goTo("/result/perdiste");
+        if (resultado === "perdi" && player === "2") return params.goTo("/result/ganaste");
+    }, 700);
+    const playerOneStorage = localStorage.getItem("");
+    if (playerOneStorage === "1") div.firstElementChild.className = "maquina";
+    if (playerOneStorage === "2") div.firstElementChild.className = "myself";
     return div;
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}],"ae2m5":[function(require,module,exports) {
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ae2m5":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "waitRoom", ()=>waitRoom
@@ -15988,7 +15931,6 @@ function waitRoom(params) {
         _state.state.setStatus(player, true);
         params.goTo("/waitPlayer");
     });
-    console.log("buton", div);
     return div;
 }
 
@@ -15999,7 +15941,9 @@ parcelHelpers.export(exports, "waitPlayer", ()=>waitPlayer
 );
 var _state = require("../../state");
 function waitPlayer(params) {
-    const nameOponent = _state.state.data.rtdbData.jugador2.name;
+    _state.state.listenRoom();
+    const currentState = _state.state.getState();
+    const nameOponent = currentState.rtdbData.jugador2.name;
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
@@ -16010,10 +15954,9 @@ function waitPlayer(params) {
         <tijera-comp></tijera-comp>
         </div>
     `;
-    _state.state.listenRoom();
     const goToPlay = ()=>{
         const data = _state.state.getState();
-        if (data.rtdbData?.jugador1?.online === "true" && data.rtdbData?.jugador2?.online === "true") {
+        if (data.rtdbData?.jugador1?.online === "true" && data.rtdbData?.jugador2?.online === "true" && location.pathname.includes("waitPlayer")) {
             data.rtdbData.jugador1.online = false;
             data.rtdbData.jugador2.online = false;
             _state.state.setState(data);
@@ -16021,6 +15964,42 @@ function waitPlayer(params) {
         }
     };
     _state.state.subscribe(goToPlay);
+    return div;
+}
+
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9DYgm":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "waitJugada", ()=>waitJugada
+);
+var _state = require("../../state");
+function waitJugada(params) {
+    const div = document.createElement("div");
+    div.className = "contenedor";
+    div.innerHTML = `
+        <div>Esperando a que tu oponente Juegue!... </div>
+        <div class="container">
+        <piedra-comp></piedra-comp>
+        <papel-comp></papel-comp>
+        <tijera-comp></tijera-comp>
+        </div>
+    `;
+    const currentState = _state.state.getState();
+    const viewPlay = ()=>{
+        if (currentState.rtdbData.jugador1.choise && currentState.rtdbData.jugador2.choise) {
+            const choise = {
+                jugador1: currentState.rtdbData.jugador1.choise,
+                jugador2: currentState.rtdbData.jugador2.choise
+            };
+            currentState.rtdbData.jugador1.choise = null;
+            currentState.rtdbData.jugador2.choise = null;
+            _state.state.setState(currentState);
+            return params.goTo("/result/jugada", {
+                choise
+            });
+        }
+    };
+    _state.state.subscribe(viewPlay);
     return div;
 }
 

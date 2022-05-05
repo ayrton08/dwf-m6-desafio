@@ -1,14 +1,6 @@
 import { state } from "../../state";
 
 export function play(params) {
-    // function redireccionar() {
-    //     if (location.pathname === "/play") {
-    //         params.goTo("/instructions");
-    //     }
-    // }
-
-    setTimeout(() => {}, 7000);
-
     const div = document.createElement("div");
     div.className = "container-play";
     div.innerHTML = `
@@ -26,57 +18,37 @@ export function play(params) {
     const tijera = div.querySelector("tijera-comp");
 
     const player = localStorage.getItem("player");
-
+    
+    const goToAwaitJugada = () => {
+        const jugador = `jugador${player}`;
+        if (state.data.rtdbData[jugador].choise && location.pathname.includes("play")) {
+            return params.goTo("/waitJugada");
+        }
+    };
     // state.listenRoom()
     const jugador1 = state.data.rtdbData.jugador1.choise;
     const jugador2 = state.data.rtdbData.jugador2.choise;
 
+    const name = state.data.fullName;
     piedra.addEventListener("click", (event) => {
         event.preventDefault();
-
-
-
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
+        state.subscribe(goToAwaitJugada);
 
-        const name = state.data.fullName;
+        state
+            .setPlay({
+                choise: "piedra",
+                name: name,
+                player: Number(player),
+            })
+            .then(() => {
+                console.log("SOY LA PROMESA");
+                return state.listenRoom();
+            });
 
-        state.setPlay({
-            choise: "piedra",
-            name: name,
-            player: Number(player),
-        });
-
-      
-        console.log("jugador 1",jugador1);
-        console.log("jugador 2",jugador2);
-        
-
-        // const resultado = state.whoWins( jugador1, jugador2);
-        // setTimeout(() => {
-        //     if (resultado === "gane") {
-        //         state.win();
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "ganaste",
-        //             jugador1: "piedra",
-        //             jugador2: jugador2,
-        //         });
-        //     }
-        //     if (resultado === "empate") {
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "empate",
-        //             jugador1: "piedra",
-        //             jugador2: jugador2,
-        //         });
-        //     } else {
-        //         state.lost();
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "perdiste",
-        //             jugador1: "piedra",
-        //             jugador2: jugador2,
-        //         });
-        //     }
-        // }, 700);
+        console.log("jugador 1", jugador1);
+        console.log("jugador 2", jugador2);
     });
 
     papel.addEventListener("click", (event) => {
@@ -84,45 +56,21 @@ export function play(params) {
 
         piedra.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
+        state.subscribe(goToAwaitJugada);
 
-        const name = state.data.fullName;
-
-        state.setPlay({
-            choise: "papel",
-            name: name,
-            player: Number(player),
-        });
-        
-        console.log("jugador 1",jugador1);
-        console.log("jugador 2",jugador2);
-        
-
-        // const resultado = state.whoWins( jugador1, jugador2);
-        setTimeout(() => {
-            // if (resultado === "gane") {
-            //     state.win();
-                return params.goTo("/result/jugada", {
-                    // resultado: "ganaste",
-                    jugador1: jugador1,
-                    jugador2: jugador2,
-                // });
-            // }
-            // if (resultado === "empate") {
-            //     return params.goTo("/result/jugada", {
-            //         resultado: "empate",
-            //         jugador1: "papel",
-            //         jugador2: jugador2,
-            //     });
-            // } else {
-            //     state.lost();
-            //     return params.goTo("/result/jugada", {
-            //         resultado: "perdiste",
-            //         jugador1: "papel",
-            //         jugador2: jugador2,
-            //     });
-            // }
-        }, 700);
+        state
+            .setPlay({
+                choise: "papel",
+                name: name,
+                player: Number(player),
+            })
+            .then(() => {
+                console.log("SOY LA PROMESA");
+                return state.listenRoom();
+            });
     });
+
+    
 
     tijera.addEventListener("click", (event) => {
         event.preventDefault();
@@ -130,43 +78,18 @@ export function play(params) {
         papel.style.opacity = "0.4";
         piedra.style.opacity = "0.4";
 
-        const name = state.data.fullName;
-
-        state.setPlay({
-            choise: "tijera",
-            name: name,
-            player: Number(player),
-        });
-        console.log("jugador 1",jugador1);
-        console.log("jugador 2",jugador2);
-    })
-
-        // const resultado = state.whoWins( jugador1, jugador2);
-        // setTimeout(() => {
-        //     if (resultado === "gane") {
-        //         state.win();
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "ganaste",
-        //             jugador1: "tijera",
-        //             jugador2: jugador2,
-        //         });
-        //     }
-        //     if (resultado === "empate") {
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "empate",
-        //             jugador1: "tijera",
-        //             jugador2: jugador2,
-        //         });
-        //     } else {
-        //         state.lost();
-        //         return params.goTo("/result/jugada", {
-        //             resultado: "perdiste",
-        //             jugador1: "tijera",
-        //             jugador2: jugador2,
-        //         });
-            // }
-        // }, 700);
-    // });
+        state.subscribe(goToAwaitJugada);
+        state
+            .setPlay({
+                choise: "tijera",
+                name: name,
+                player: Number(player),
+            })
+            .then(() => {
+                console.log("SOY LA PROMESA");
+                return state.listenRoom();
+            });
+    });
 
     return div;
 }
