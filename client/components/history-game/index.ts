@@ -18,8 +18,8 @@ export function historyComp() {
             div.innerHTML = `
                 <div>Score</div>
                 <div class="content">
-                <span>Vos: ${state.historyVos()}</span>
-                <span>Maquina: ${state.historyMaquina()}</span>
+                <span>Vos: </span>
+                <span>Maquina: </span>
                 </div>
                 ${this.getStyle()}
             `

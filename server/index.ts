@@ -1,5 +1,5 @@
 import { firestore, rtdb } from "./db";
-import { onValue, ref } from "firebase/database";
+import { get, onValue, ref } from "firebase/database";
 import * as express from "express";
 import * as cors from "cors";
 import { nanoid } from "nanoid";
@@ -130,7 +130,6 @@ app.post("/jugadas", function (req, res) {
     const { rtdbRoomId, player } = req.body;
 
     if (player === "1") {
-        console.log("PLAYER", req.body);
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
 
         roomRef.update({
@@ -141,7 +140,6 @@ app.post("/jugadas", function (req, res) {
     }
     if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
-        console.log("VENGODEL BACK");
         roomRef.update({
             status: `${req.body.status}`,
             online: `${req.body.online}`,
@@ -151,8 +149,7 @@ app.post("/jugadas", function (req, res) {
 });
 
 app.post("/play", function (req, res) {
-    const { rtdbRoomId, player, } = req.body;
-    console.log("SOY EL BODY", req.body);
+    const { rtdbRoomId, player } = req.body;
 
     if (player === 1) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
@@ -182,6 +179,39 @@ app.post("/play", function (req, res) {
     }
 });
 
+app.post("/cleanPlay", function (req, res) {
+    const { rtdbRoomId, player } = req.body;
+
+    if (player === 1) {
+        const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
+
+        const data = roomRef.set(
+            {
+                status: req.body.status,
+                name: req.body.name,
+                online: req.body.online,
+            },
+            function () {
+                return data[0];
+            }
+        );
+    }
+    if (player === 2) {
+        const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
+
+        const data = roomRef.set(
+            {
+                status: req.body.status,
+                name: req.body.name,
+                online: req.body.online,
+            },
+            function () {
+                return data[1];
+            }
+        );
+    }
+});
+
 app.post("/rtdbRoomId", function (req, res) {
     const { roomId } = req.body;
 
@@ -192,29 +222,23 @@ app.post("/rtdbRoomId", function (req, res) {
             const docu = doc.data();
             res.json(docu);
         });
-    // const roomRef = rtdb.ref(`/rooms/${roomId}`);
+});
 
-    // console.log("soy el roomref",roomRef)
+app.post("/history", function (req, res) {
+    const { rtdbRoomId, player } = req.body;
+    const currentState = state.getState();
 
-    // roomRef
-    //     .get()
-    //     .then((snap) => {
-    //         console.log(snap.val());
-    //     })
-    //     .then(() => {
-    //         return res.json();
-    //     });
+    const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
 
-    // if (state.data.rtdbData[0] == "jugador1") {
-    //     const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
+    const data = roomRef.update(
+        {
+            victory1: req.body.victory1,
+            victory2: req.body.victory2,
+        },
+        function () {
+            console.log("la data", data);
 
-    //     roomRef.update(
-    //         {
-    //             status: `${req.body.status}`,
-    //         },
-    //         function () {
-    //             res.json("todo ok");
-    //         }
-    //     );
-    // }
+            return data;
+        }
+    );
 });

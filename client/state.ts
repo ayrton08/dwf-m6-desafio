@@ -13,6 +13,7 @@ const state = {
         roomId: "",
         rtdbData: {},
         playerOneWaiting: true,
+        history: {},
     },
 
     listeners: [],
@@ -175,8 +176,30 @@ const state = {
                 rtdbRoomId,
                 player: params.player,
             }),
-        })
-            
+        });
+    },
+    cleanPlay(params: {
+        name: string;
+        status: boolean;
+        player: any;
+        online: boolean;
+    }) {
+        const currentState = this.getState();
+
+        const rtdbRoomId = this.init().rtdbRoomId;
+        return fetch(API_BASE_URL + "/cleanPlay", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name: params.name,
+                rtdbRoomId,
+                status: params.status,
+                online: params.online,
+                player: params.player,
+            }),
+        });
     },
 
     getRtdbRoomId() {
@@ -235,20 +258,29 @@ const state = {
             sessionStorage.setItem("maquina", "1");
         }
     },
-    historyVos() {
-        let value = JSON.parse(sessionStorage.getItem("vos"));
-        if (value === null) {
-            return (value = 0);
-        }
-        return value;
-    },
-    historyMaquina() {
-        let value = JSON.parse(sessionStorage.getItem("maquina"));
-        if (value === null) {
-            return (value = 0);
-        }
-
-        return value;
+    history(victory1, victory2) {
+        const rtdbRoomId = this.init().rtdbRoomId;
+        const player = localStorage.getItem("player")
+        const currentState = state.getState()
+        return fetch(API_BASE_URL + "/history", {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                rtdbRoomId,
+                victory1,
+                victory2,
+                player
+            })
+        }).then((res)=>{
+            return res.json()
+        }).then((data)=>{
+            console.log("LA DATA",data);
+            
+            currentState.history = data
+            return state.setState(currentState)
+        })
     },
 };
 

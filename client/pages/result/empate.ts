@@ -13,16 +13,16 @@ export function empate(params) {
         `;
     const name = state.data.fullName;
     const player = Number(localStorage.getItem("player"));
-    state.setPlay({ choise: null, name: name, player: player });
-    state.setStatus(player, false);
 
-    console.log(state.data.roomId);
-    
+    console.log(state.getState());
 
     const button = div.querySelector("button-playagain");
+
+    state.cleanPlay({ name: name, status: true, player: player, online: true });
+
     button.addEventListener("click", (event) => {
         event.preventDefault();
-        params.goTo("/waitRoom");
+        return params.goTo("/waitRoom");
     });
 
     return div;

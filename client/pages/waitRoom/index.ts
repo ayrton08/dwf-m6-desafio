@@ -19,6 +19,9 @@ export function waitRoom(params) {
     // const button = document.querySelector("#button-jugar");
     const player = localStorage.getItem("player");
     
+    
+
+
     div.addEventListener("click", () => {
         state.setStatus(player,true);
         
