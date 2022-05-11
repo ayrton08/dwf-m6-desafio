@@ -4,38 +4,34 @@ import { state } from "../../state";
 export function waitPlayer(params) {
     state.listenRoom();
 
-    const player = localStorage.getItem("player")    
+    const player = localStorage.getItem("player");
+    const currentState = state.getState();
 
-    function nameOponent(player){
-        if(player === "1"){
-            const name = state.data.rtdbData.jugador2.name
-            console.log("nombre",name);
-        }
-        if(player === "2"){
-            
-            const name = state.data.rtdbData.jugador1.name
-            console.log("nombre",name);
-        }
-        
+    var name = "";
+    if (player === "1") {
+        name = currentState.rtdbData.jugador2.name;
+    }
+    if (player === "2") {
+        name = currentState.rtdbData.jugador1.name;
     }
 
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que ${nameOponent(player)} presione ¡Jugar!... </div>
+        <div>Esperando a que ${name} presione ¡Jugar!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
-    console.log("waitplayer", state.data);
-
     const goToPlay = () => {
         const data = state.getState();
+        
+
         if (
-            data.rtdbData?.jugador1?.online === "true" &&
-            data.rtdbData?.jugador2?.online === "true" &&
+            data.rtdbData?.jugador1?.online &&
+            data.rtdbData?.jugador2?.online &&
             location.pathname.includes("waitPlayer")
         ) {
             data.rtdbData.jugador1.online = false;
@@ -45,8 +41,7 @@ export function waitPlayer(params) {
         }
     };
 
-    
-        state.subscribe(goToPlay);
+    state.subscribe(goToPlay);
 
     return div;
 }

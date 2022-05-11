@@ -99,7 +99,6 @@ const state = {
 
     accessToRoom(callback?) {
         const currentState = this.getState();
-        // const roomId = currentState.roomId;
         const roomIdStorage = this.init();
         const roomId = roomIdStorage.roomId;
         return fetch(
@@ -126,7 +125,6 @@ const state = {
         }
         localStorage.setItem("state", JSON.stringify(newState));
 
-        // console.log("Soy el state, he cambiado ", this.data);
         return Promise.resolve();
     },
 
@@ -136,8 +134,7 @@ const state = {
 
     setStatus(player, online) {
         const currentState = this.getState();
-
-        const rtdbRoomId = this.init().rtdbRoomId;
+        const rtdbRoomId = this.getState().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
             method: "post",
             headers: {
@@ -161,9 +158,6 @@ const state = {
     },
 
     setPlay(params: { choise: string; name: string; player: number }) {
-        const currentState = this.getState();
-        console.log("SOY EL SET STATE");
-
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
             method: "post",
@@ -178,14 +172,13 @@ const state = {
             }),
         });
     },
+
     cleanPlay(params: {
         name: string;
         status: boolean;
         player: any;
-        online: boolean;
+        online: any;
     }) {
-        const currentState = this.getState();
-
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/cleanPlay", {
             method: "post",
@@ -218,7 +211,8 @@ const state = {
             .then((data) => {
                 currentState.rtdbRoomId = data.rtdbRoomId;
                 return state.setState(currentState);
-            });
+            })
+            
     },
 
     whoWins(player1: Jugada, player2: any) {
@@ -238,50 +232,39 @@ const state = {
         }
     },
     win() {
-        if (!!sessionStorage.getItem("vos")) {
-            const value = sessionStorage.getItem("vos");
+        if (!!sessionStorage.getItem("victorias")) {
+            console.log("entro en el if");
+
+            const value = sessionStorage.getItem("victorias");
             return sessionStorage.setItem(
-                "vos",
-                JSON.stringify(Number(value) + 1)
-            );
-        }
-        sessionStorage.setItem("vos", "1");
-    },
-    lost() {
-        if (!!sessionStorage.getItem("maquina")) {
-            const value = sessionStorage.getItem("maquina");
-            sessionStorage.setItem(
-                "maquina",
+                "victorias",
                 JSON.stringify(Number(value) + 1)
             );
         } else {
-            sessionStorage.setItem("maquina", "1");
+            return sessionStorage.setItem("victorias", "1");
         }
     },
-    history(victory1, victory2) {
-        const rtdbRoomId = this.init().rtdbRoomId;
-        const player = localStorage.getItem("player")
-        const currentState = state.getState()
+
+    history(victory) {
+        
+        const rtdbRoomId = this.getState().rtdbRoomId;
+        const player = localStorage.getItem("player");
         return fetch(API_BASE_URL + "/history", {
             method: "post",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                rtdbRoomId,
-                victory1,
-                victory2,
-                player
-            })
-        }).then((res)=>{
-            return res.json()
-        }).then((data)=>{
-            console.log("LA DATA",data);
-            
-            currentState.history = data
-            return state.setState(currentState)
-        })
+                rtdbRoomId: rtdbRoomId,
+                player,
+                victory,
+            }),
+        }).then((res) => {
+            return res.json();
+        });
     },
+
+   
 };
 
 export { state };

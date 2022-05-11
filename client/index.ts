@@ -10,6 +10,7 @@ import { instructionsComp } from "./components/instruction-comp";
 import { buttonPlayAgain } from "./components/button-playagain";
 import { counterComp } from "./components/counter/index";
 import { historyComp } from "./components/history-game";
+import { counterRoom } from "./components/counterRoomId";
 
 
 (function (){
@@ -24,6 +25,7 @@ import { historyComp } from "./components/history-game";
     buttonPlayAgain()
     counterComp()
     historyComp()
+    counterRoom()
 
     const root = document.querySelector(".root");
 

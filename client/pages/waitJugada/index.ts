@@ -3,9 +3,20 @@ import { state } from "../../state";
 
 export function waitJugada(params) {
     const div = document.createElement("div");
+    const player = localStorage.getItem("player");
+    const currentState = state.getState();
+
+    var name = "";
+    if (player === "1") {
+        name = currentState.rtdbData.jugador2.name;
+    }
+    if (player === "2") {
+        name = currentState.rtdbData.jugador1.name;
+    }
+
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que tu oponente Juegue!... </div>
+        <div>Esperando a que tu ${name} Juegue!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -13,11 +24,11 @@ export function waitJugada(params) {
         </div>
     `;
 
-    const currentState = state.getState();
     const viewPlay = () => {
         if (
-            currentState.rtdbData.jugador1.choise &&
-            currentState.rtdbData.jugador2.choise
+            currentState.rtdbData.jugador1?.choise &&
+            currentState.rtdbData.jugador2?.choise &&
+            location.pathname.includes("waitJugada")
         ) {
             const choise = {
                 jugador1: currentState.rtdbData.jugador1.choise,
@@ -25,8 +36,9 @@ export function waitJugada(params) {
             };
             currentState.rtdbData.jugador1.choise = null;
             currentState.rtdbData.jugador2.choise = null;
+            currentState.playerOneWaiting = true;
             state.setState(currentState);
-            
+
             return params.goTo("/result/jugada", { choise });
         }
     };

@@ -1,10 +1,14 @@
 import { state } from "../../state";
+import { counterComp } from "../../components/counter";
 
 export function yourName(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <button-play></button-play>
+        <button-play>
+        <div slot="text">Empezar</div>
+        </button-play>
+        
         <input class="name"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -15,33 +19,27 @@ export function yourName(params) {
 
     const button = div.querySelector("button-play");
 
-    const player = localStorage.getItem("player")
-    
+    const player = localStorage.getItem("player");
+    state.setStatus(player, false);
     
     button.addEventListener("click", (event) => {
-        event.preventDefault();
         const nameValue = document.querySelector("input").value;
         state.setFullName(nameValue);
-
-        
+        div.innerHTML = `<counter-room></counter-room>`;
 
         state.signIn().then(() => {
-            
             if (state.data.roomId) {
                 state.getRtdbRoomId().then(() => {
-                    
+                    console.log("player uno",state.data);
                     
                     state.listenRoom();
-                    state.setStatus(player,true)
-                    
-                    
+                    state.setStatus(player, true);
                     return params.goTo("/waitRoom");
                 });
             } else {
                 state.askNewRoom().then(() => {
                     state.listenRoom();
-                    state.setStatus(player,true)
-
+                    state.setStatus(player, true);
                     return params.goTo("/codeRoom");
                 });
             }

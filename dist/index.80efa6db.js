@@ -538,6 +538,7 @@ var _instructionComp = require("./components/instruction-comp");
 var _buttonPlayagain = require("./components/button-playagain");
 var _index4 = require("./components/counter/index");
 var _historyGame = require("./components/history-game");
+var _counterRoomId = require("./components/counterRoomId");
 (function() {
     _index.titleText();
     _buttonNewGame.buttonStart();
@@ -550,11 +551,12 @@ var _historyGame = require("./components/history-game");
     _buttonPlayagain.buttonPlayAgain();
     _index4.counterComp();
     _historyGame.historyComp();
+    _counterRoomId.counterRoom();
     const root = document.querySelector(".root");
     _router.initRouter(root);
 })();
 
-},{"./router":"lh0b7","./components/title-text/index":"g1OJX","./components/papel-comp/index":"eQP9D","./components/piedra-comp/index":"4rTTw","./components/tijera-comp":"jbssp","./components/button-play/index":"fleLF","./components/instruction-comp":"il5tg","./components/button-playagain":"d2rD5","./components/counter/index":"gffpt","./components/history-game":"1eCUk","./components/button-new-game":"FZFhq","./components/button-room":"jwtJx"}],"lh0b7":[function(require,module,exports) {
+},{"./router":"lh0b7","./components/title-text/index":"g1OJX","./components/papel-comp/index":"eQP9D","./components/piedra-comp/index":"4rTTw","./components/tijera-comp":"jbssp","./components/button-play/index":"fleLF","./components/instruction-comp":"il5tg","./components/button-playagain":"d2rD5","./components/counter/index":"gffpt","./components/button-new-game":"FZFhq","./components/button-room":"jwtJx","./components/counterRoomId":"ez0PN","./components/history-game":"1eCUk"}],"lh0b7":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "initRouter", ()=>initRouter
@@ -627,7 +629,7 @@ function initRouter(container) {
         handleRoute(path);
     }
     function handleRoute(route) {
-        console.log("El handleroute recibio una nueva ruta", route);
+        // console.log("El handleroute recibio una nueva ruta", route);
         for (const r of routes)if (r.path.test(route)) {
             const el = r.component({
                 goTo: goTo
@@ -661,7 +663,6 @@ function welcomePage(params) {
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
-       
     `;
     const buttonNewGame = div.querySelector("button-new-game");
     const buttonRoom = div.querySelector("button-room");
@@ -718,7 +719,10 @@ function yourName(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <button-play></button-play>
+        <button-play>
+        <div slot="text">Empezar</div>
+        </button-play>
+        
         <input class="name"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -728,12 +732,14 @@ function yourName(params) {
     `;
     const button = div.querySelector("button-play");
     const player = localStorage.getItem("player");
+    _state.state.setStatus(player, false);
     button.addEventListener("click", (event)=>{
-        event.preventDefault();
         const nameValue = document.querySelector("input").value;
         _state.state.setFullName(nameValue);
+        div.innerHTML = `<counter-room></counter-room>`;
         _state.state.signIn().then(()=>{
             if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
+                console.log("player uno", _state.state.data);
                 _state.state.listenRoom();
                 _state.state.setStatus(player, true);
                 return params.goTo("/waitRoom");
@@ -830,7 +836,6 @@ const state = {
     },
     accessToRoom (callback) {
         const currentState = this.getState();
-        // const roomId = currentState.roomId;
         const roomIdStorage = this.init();
         const roomId = roomIdStorage.roomId;
         return fetch(API_BASE_URL + "/room/" + roomId + "?userId=" + currentState.userId).then((res)=>{
@@ -844,7 +849,6 @@ const state = {
         this.data = newState;
         for (const cb of this.listeners)cb();
         localStorage.setItem("state", JSON.stringify(newState));
-        // console.log("Soy el state, he cambiado ", this.data);
         return Promise.resolve();
     },
     subscribe (callback) {
@@ -852,7 +856,7 @@ const state = {
     },
     setStatus (player, online) {
         const currentState = this.getState();
-        const rtdbRoomId = this.init().rtdbRoomId;
+        const rtdbRoomId = this.getState().rtdbRoomId;
         return fetch(API_BASE_URL + "/jugadas", {
             method: "post",
             headers: {
@@ -873,8 +877,6 @@ const state = {
         });
     },
     setPlay (params) {
-        const currentState = this.getState();
-        console.log("SOY EL SET STATE");
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/play", {
             method: "post",
@@ -890,7 +892,6 @@ const state = {
         });
     },
     cleanPlay (params) {
-        const currentState = this.getState();
         const rtdbRoomId = this.init().rtdbRoomId;
         return fetch(API_BASE_URL + "/cleanPlay", {
             method: "post",
@@ -932,39 +933,27 @@ const state = {
         else return "perdi";
     },
     win () {
-        if (!!sessionStorage.getItem("vos")) {
-            const value = sessionStorage.getItem("vos");
-            return sessionStorage.setItem("vos", JSON.stringify(Number(value) + 1));
-        }
-        sessionStorage.setItem("vos", "1");
+        if (!!sessionStorage.getItem("victorias")) {
+            console.log("entro en el if");
+            const value = sessionStorage.getItem("victorias");
+            return sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
+        } else return sessionStorage.setItem("victorias", "1");
     },
-    lost () {
-        if (!!sessionStorage.getItem("maquina")) {
-            const value = sessionStorage.getItem("maquina");
-            sessionStorage.setItem("maquina", JSON.stringify(Number(value) + 1));
-        } else sessionStorage.setItem("maquina", "1");
-    },
-    history (victory1, victory2) {
-        const rtdbRoomId = this.init().rtdbRoomId;
+    history (victory) {
+        const rtdbRoomId = this.getState().rtdbRoomId;
         const player = localStorage.getItem("player");
-        const currentState = state.getState();
         return fetch(API_BASE_URL + "/history", {
             method: "post",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                rtdbRoomId,
-                victory1,
-                victory2,
-                player
+                rtdbRoomId: rtdbRoomId,
+                player,
+                victory
             })
         }).then((res)=>{
             return res.json();
-        }).then((data)=>{
-            console.log("LA DATA", data);
-            currentState.history = data;
-            return state.setState(currentState);
         });
     }
 };
@@ -15630,14 +15619,12 @@ function codeRoom(params) {
         </div>
     `;
     const codigo = JSON.parse(localStorage.getItem("state"));
+    const player = localStorage.getItem("player");
     const codeRoom1 = div.querySelector(".code");
     codigo.roomId && (codeRoom1.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`);
     const goToRoom = ()=>{
         const data = _state.state.getState();
-        if (data.rtdbData?.jugador2?.status === "true" && data.playerOneWaiting) {
-            data.playerOneWaiting = false;
-            return params.goTo("/waitRoom");
-        }
+        if (data.rtdbData?.jugador2?.status == true && location.pathname.includes("codeRoom")) return params.goTo("/waitRoom");
     };
     _state.state.accessToRoom().then(()=>{
         _state.state.subscribe(goToRoom);
@@ -15664,50 +15651,42 @@ function play(params) {
     <tijera-comp></tijera-comp>
     </div>
     `;
+    const player = localStorage.getItem("player");
     const piedra = div.querySelector("piedra-comp");
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
-    const player = localStorage.getItem("player");
     const goToAwaitJugada = ()=>{
         const jugador = `jugador${player}`;
         if (_state.state.data.rtdbData[jugador].choise && location.pathname.includes("play")) return params.goTo("/waitJugada");
     };
-    // state.listenRoom()
-    const jugador1 = _state.state.data.rtdbData.jugador1.choise;
-    const jugador2 = _state.state.data.rtdbData.jugador2.choise;
     const name = _state.state.data.fullName;
-    piedra.addEventListener("click", (event)=>{
-        event.preventDefault();
+    piedra.addEventListener("click", ()=>{
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
         _state.state.subscribe(goToAwaitJugada);
+        console.log("jugue");
         _state.state.setPlay({
             choise: "piedra",
             name: name,
             player: Number(player)
         }).then(()=>{
-            console.log("SOY LA PROMESA");
+            _state.state.subscribe(goToAwaitJugada);
             return _state.state.listenRoom();
         });
-        console.log("jugador 1", jugador1);
-        console.log("jugador 2", jugador2);
     });
-    papel.addEventListener("click", (event)=>{
-        event.preventDefault();
+    papel.addEventListener("click", ()=>{
+        _state.state.subscribe(goToAwaitJugada);
         piedra.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
-        _state.state.subscribe(goToAwaitJugada);
         _state.state.setPlay({
             choise: "papel",
             name: name,
             player: Number(player)
         }).then(()=>{
-            console.log("SOY LA PROMESA");
             return _state.state.listenRoom();
         });
     });
-    tijera.addEventListener("click", (event)=>{
-        event.preventDefault();
+    tijera.addEventListener("click", ()=>{
         papel.style.opacity = "0.4";
         piedra.style.opacity = "0.4";
         _state.state.subscribe(goToAwaitJugada);
@@ -15716,7 +15695,6 @@ function play(params) {
             name: name,
             player: Number(player)
         }).then(()=>{
-            console.log("SOY LA PROMESA");
             return _state.state.listenRoom();
         });
     });
@@ -15734,7 +15712,9 @@ function yourCodeRoom(params) {
     div.className = "contenedor";
     div.innerHTML = `
         estas en el code room
-        <button-play></button-play>
+        <button-play>
+        <div slot="text">Ingresar a la sala</div>
+        </button-play>
         <input class="name"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -15748,8 +15728,7 @@ function yourCodeRoom(params) {
         const codeValue = document.querySelector("input").value;
         const currentState = _state.state.getState();
         currentState.roomId = codeValue;
-        _state.state.setState(currentState)// tengo que setear el code room y quedarme escuchando ese room
-        .then(()=>{
+        _state.state.setState(currentState).then(()=>{
             _state.state.getRtdbRoomId();
             _state.state.listenRoom();
             return params.goTo("/yourName");
@@ -15774,14 +15753,13 @@ function ganaste(params) {
         <button-playagain></button-playagain>
     
         `;
-    const name = _state.state.data.fullName;
     const player = Number(localStorage.getItem("player"));
-    console.log(_state.state.getState());
+    const name = _state.state.data.fullName;
     _state.state.cleanPlay({
         name: name,
-        status: true,
+        status: false,
         player: player,
-        online: true
+        online: false
     });
     const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
@@ -15844,16 +15822,16 @@ function perdiste(params) {
         <button-playagain></button-playagain>
 
         `;
-    const name = _state.state.data.fullName;
     const player = Number(localStorage.getItem("player"));
     console.log(_state.state.getState());
-    const button = div.querySelector("button-playagain");
+    const name = _state.state.data.fullName;
     _state.state.cleanPlay({
         name: name,
-        status: true,
+        status: false,
         player: player,
-        online: true
+        online: false
     });
+    const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
         return params.goTo("/waitRoom");
@@ -15880,16 +15858,15 @@ function empate(params) {
         <button-playagain></button-playagain>
     
         `;
-    const name = _state.state.data.fullName;
     const player = Number(localStorage.getItem("player"));
-    console.log(_state.state.getState());
-    const button = div.querySelector("button-playagain");
+    const name = _state.state.data.fullName;
     _state.state.cleanPlay({
         name: name,
-        status: true,
+        status: false,
         player: player,
-        online: true
+        online: false
     });
+    const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
         return params.goTo("/waitRoom");
@@ -15914,7 +15891,6 @@ function jugada(params) {
         piedra: `<piedra-comp width="140px" height="250px"></piedra-comp>`,
         tijera: `<tijera-comp width="140px" height="250px"></tijera-comp>`
     };
-    const currentState = _state.state.getState();
     const jugador1 = history.state.choise.jugador1;
     const jugador2 = history.state.choise.jugador2;
     div.innerHTML = `
@@ -15923,38 +15899,22 @@ function jugada(params) {
         `;
     const player = localStorage.getItem("player");
     const resultado = _state.state.whoWins(jugador1, jugador2);
-    var victory1 = Number(_state.state.data.history?.victory1) + 1;
-    var victory2 = Number(_state.state.data.history?.victory2) + 1;
+    var victory = Number(sessionStorage.getItem("victorias"));
     setTimeout(()=>{
         if (resultado === "gane" && player === "1") {
-            _state.state.history(victory1, victory2);
+            _state.state.win();
+            _state.state.history(victory);
             return params.goTo("/result/ganaste");
         }
-        if (resultado === "gane" && player === "2") {
-            _state.state.history(victory1, victory2);
-            return params.goTo("/result/perdiste");
-        }
-        if (resultado === "empate") {
-            _state.state.history(victory1, victory2);
-            return params.goTo("/result/empate");
-        }
-        if (resultado === "perdi" && player === "1") {
-            _state.state.history(victory1, victory2);
-            return params.goTo("/result/perdiste");
-        }
+        if (resultado === "gane" && player === "2") return params.goTo("/result/perdiste");
+        if (resultado === "empate") return params.goTo("/result/empate");
+        if (resultado === "perdi" && player === "1") return params.goTo("/result/perdiste");
         if (resultado === "perdi" && player === "2") {
-            _state.state.history(victory1, victory2);
+            _state.state.win();
+            _state.state.history(victory);
             return params.goTo("/result/ganaste");
         }
     }, 700);
-    // const playerOneStorage = localStorage.getItem("player");
-    // if (playerOneStorage === "1") {
-    //     const container = document.querySelector(".container-jugada")
-    //     container.style.flexDirection = "column-reverse"
-    // }
-    // // if (playerOneStorage === "2") {
-    // //     div.firstElementChild.className = "myself";
-    // // }
     return div;
 }
 
@@ -15967,22 +15927,10 @@ var _state = require("../../state");
 function waitRoom(params) {
     const div = document.createElement("button");
     div.textContent = "jugar";
-    // div.className = "contenedor";
-    // div.innerHTML = `
-    //     <div id="button-jugar">
-    //     <button-play></button-play>
-    //     </div>
-    //     <div class="container">
-    //     <piedra-comp></piedra-comp>
-    //     <papel-comp></papel-comp>
-    //     <tijera-comp></tijera-comp>
-    //     </div>
-    // `;
-    // const button = document.querySelector("#button-jugar");
     const player = localStorage.getItem("player");
     div.addEventListener("click", ()=>{
         _state.state.setStatus(player, true);
-        params.goTo("/waitPlayer");
+        return params.goTo("/waitPlayer");
     });
     return div;
 }
@@ -15995,31 +15943,24 @@ parcelHelpers.export(exports, "waitPlayer", ()=>waitPlayer
 var _state = require("../../state");
 function waitPlayer(params) {
     _state.state.listenRoom();
-    const player1 = localStorage.getItem("player");
-    function nameOponent(player) {
-        if (player === "1") {
-            const name = _state.state.data.rtdbData.jugador2.name;
-            console.log("nombre", name);
-        }
-        if (player === "2") {
-            const name = _state.state.data.rtdbData.jugador1.name;
-            console.log("nombre", name);
-        }
-    }
+    const player = localStorage.getItem("player");
+    const currentState = _state.state.getState();
+    var name = "";
+    if (player === "1") name = currentState.rtdbData.jugador2.name;
+    if (player === "2") name = currentState.rtdbData.jugador1.name;
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que ${nameOponent(player1)} presione ¡Jugar!... </div>
+        <div>Esperando a que ${name} presione ¡Jugar!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
-    console.log("waitplayer", _state.state.data);
     const goToPlay = ()=>{
         const data = _state.state.getState();
-        if (data.rtdbData?.jugador1?.online === "true" && data.rtdbData?.jugador2?.online === "true" && location.pathname.includes("waitPlayer")) {
+        if (data.rtdbData?.jugador1?.online && data.rtdbData?.jugador2?.online && location.pathname.includes("waitPlayer")) {
             data.rtdbData.jugador1.online = false;
             data.rtdbData.jugador2.online = false;
             _state.state.setState(data);
@@ -16038,24 +15979,29 @@ parcelHelpers.export(exports, "waitJugada", ()=>waitJugada
 var _state = require("../../state");
 function waitJugada(params) {
     const div = document.createElement("div");
+    const player = localStorage.getItem("player");
+    const currentState = _state.state.getState();
+    var name = "";
+    if (player === "1") name = currentState.rtdbData.jugador2.name;
+    if (player === "2") name = currentState.rtdbData.jugador1.name;
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que tu oponente Juegue!... </div>
+        <div>Esperando a que tu ${name} Juegue!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
-    const currentState = _state.state.getState();
     const viewPlay = ()=>{
-        if (currentState.rtdbData.jugador1.choise && currentState.rtdbData.jugador2.choise) {
+        if (currentState.rtdbData.jugador1?.choise && currentState.rtdbData.jugador2?.choise && location.pathname.includes("waitJugada")) {
             const choise = {
                 jugador1: currentState.rtdbData.jugador1.choise,
                 jugador2: currentState.rtdbData.jugador2.choise
             };
             currentState.rtdbData.jugador1.choise = null;
             currentState.rtdbData.jugador2.choise = null;
+            currentState.playerOneWaiting = true;
             _state.state.setState(currentState);
             return params.goTo("/result/jugada", {
                 choise
@@ -16242,7 +16188,7 @@ function buttonPlay() {
             const button = document.createElement("button");
             button.className = "root";
             button.innerHTML = `
-                <span>¡Jugar!</span>
+                <slot name="text"></slot>
                 ${this.getStyles()}    
             `;
             this.shadowRoot.appendChild(button);
@@ -16477,83 +16423,6 @@ function counterComp() {
     customElements.define("counter-comp", Counter);
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1eCUk":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "historyComp", ()=>historyComp
-);
-function historyComp() {
-    class History extends HTMLElement {
-        constructor(){
-            super();
-        }
-        connectedCallback() {
-            this.render();
-        }
-        render() {
-            this.attachShadow({
-                mode: "open"
-            });
-            const div = document.createElement("div");
-            div.className = "container";
-            div.innerHTML = `
-                <div>Score</div>
-                <div class="content">
-                <span>Vos: </span>
-                <span>Maquina: </span>
-                </div>
-                ${this.getStyle()}
-            `;
-            this.shadowRoot.appendChild(div);
-        }
-        getStyle() {
-            return `
-            <style>
-            
-
-                .container {
-
-                margin: 0;
-                color: #000000;
-                font-family: 'Odibee Sans', cursive;
-                font-size: 55px;
-                font-weight: bold; 
-                text-align: center;
-                
-
-                display: flex;
-                flex-direction: column;
-                justify-content: space-around;
-                align-items: center;
-                padding: 20px;
-
-
-                background-color: antiquewhite;
-                border: black solid 10px;
-                border-radius: 10px;
-                width: 259px;
-                height: 217px;
-
-            }
-
-            .content {
-                display: flex;
-                flex-direction: column;
-                text-align: end;
-                font-size: 45px;
-                
-                
-
-            }
-            
-            </style>
-
-            `;
-        }
-    }
-    customElements.define("history-comp", History);
-}
-
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"FZFhq":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -16658,6 +16527,185 @@ function buttonRoom() {
     customElements.define("button-room", ButtonRoom);
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["eH30j","jYSt7"], "jYSt7", "parcelRequire04f1")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"ez0PN":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "counterRoom", ()=>counterRoom
+);
+function counterRoom() {
+    class Counter extends HTMLElement {
+        constructor(){
+            super();
+        }
+        connectedCallback() {
+            this.render();
+        }
+        render() {
+            this.attachShadow({
+                mode: "open"
+            });
+            this.counter();
+            const div = document.createElement("div");
+            div.className = "root";
+            div.innerHTML = `
+            <div class="clock">
+	        <span class="seconds"></span>
+            </div>
+            
+            ${this.getStyle()}    
+            `;
+            this.shadowRoot.appendChild(div);
+        }
+        getStyle() {
+            return `
+            <style>
+                .clock {
+	        width: 300px;
+	        height: 300px;
+	        border-radius: 50%;
+	        background-color: lightgrey;
+	        margin: auto;
+            font-family: 'Odibee Sans', cursive;
+            }
+        
+                .seconds {
+	        display: block;
+	        width: 100%;
+	        margin: auto;
+	        padding-top: 110px;
+	        text-align: center;
+	        font-size: 50px;
+            }
+          
+            
+            </style>
+
+            `;
+        }
+        counter() {
+            let counter = 5;
+            let interval = setInterval(()=>{
+                counter--;
+                if (counter == 4) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.textContent = "Creando";
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "#F8C471";
+                } else if (counter == 3) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.textContent = "tu";
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "#2ECC71 ";
+                } else if (counter == 2) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.textContent = "Game Room";
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "#D2B4DE";
+                } else if (counter == 1) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Almost Ready</span>
+                    <style>
+                        .time {
+                    font-size: 40px;
+                    color: crimson;
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "#F1948A";
+                } else if (counter == 0) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Sorry this is takiig too long</span>
+                    <style>
+                        .time {
+                    font-size: 25px;
+                    color: crimson;
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "#F1948A";
+                } else clearInterval(interval);
+            }, 1000);
+            return interval;
+        }
+    }
+    customElements.define("counter-room", Counter);
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"1eCUk":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "historyComp", ()=>historyComp
+);
+var _state = require("../../state");
+function historyComp() {
+    class History extends HTMLElement {
+        constructor(){
+            super();
+        }
+        connectedCallback() {
+            this.render();
+        }
+        render() {
+            this.attachShadow({
+                mode: "open"
+            });
+            const div = document.createElement("div");
+            _state.state.listenRoom();
+            const data = _state.state.getState();
+            console.log("player1", data);
+            const player = data.rtdbData.history.player1 //me da como undefined y me rompe el componment
+            ;
+            console.log("player", player);
+            div.className = "container";
+            div.innerHTML = `
+                <div>Score</div>
+                <div class="content">
+                <span>Vos: 1 </span>
+                <span>Maquina: ${player}</span>
+                </div>
+                ${this.getStyle()}
+            `;
+            this.shadowRoot.appendChild(div);
+        }
+        getStyle() {
+            return `
+            <style>
+                .container {
+                margin: 0;
+                color: #000000;
+                font-family: 'Odibee Sans', cursive;
+                font-size: 55px;
+                font-weight: bold; 
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+                align-items: center;
+                padding: 20px;
+                background-color: antiquewhite;
+                border: black solid 10px;
+                border-radius: 10px;
+                width: 259px;
+                height: 217px;
+            }
+
+            .content {
+                display: flex;
+                flex-direction: column;
+                text-align: end;
+                font-size: 45px;
+            }
+            </style>
+            `;
+        }
+    }
+    customElements.define("history-comp", History);
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}]},["eH30j","jYSt7"], "jYSt7", "parcelRequire04f1")
 
 //# sourceMappingURL=index.80efa6db.js.map

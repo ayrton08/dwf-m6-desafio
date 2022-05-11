@@ -5,7 +5,9 @@ export function yourCodeRoom(params) {
     div.className = "contenedor";
     div.innerHTML = `
         estas en el code room
-        <button-play></button-play>
+        <button-play>
+        <div slot="text">Ingresar a la sala</div>
+        </button-play>
         <input class="name"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -26,11 +28,8 @@ export function yourCodeRoom(params) {
         state
             .setState(currentState)
 
-            // tengo que setear el code room y quedarme escuchando ese room
-
             .then(() => {
-                
-                state.getRtdbRoomId()
+                state.getRtdbRoomId();
                 state.listenRoom();
 
                 return params.goTo("/yourName");

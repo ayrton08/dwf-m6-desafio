@@ -10,13 +10,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", function (req, res) {
-    console.log(req.body);
-    res.json({
-        estado: "ok",
-    });
-});
-
 app.listen(PORT, () => {
     console.log("Todo funcionando en el puerto " + PORT);
 });
@@ -48,25 +41,6 @@ app.post("/signup", (req, res) => {
             }
         });
 });
-
-// app.post("/auth", (req, res) => {
-//     const { email } = req.body;
-
-//     userCollection
-//         .where("email", "==", email)
-//         .get()
-//         .then((search) => {
-//             if (search.empty) {
-//                 res.status(404).json({
-//                     message: "not found",
-//                 });
-//             } else {
-//                 res.json({
-//                     id: search.docs[0].id,
-//                 });
-//             }
-//         });
-// });
 
 app.post("/rooms", (req, res) => {
     const { userId } = req.body;
@@ -116,10 +90,10 @@ app.get("/room/:roomId", (req, res) => {
                     .get()
                     .then((snap) => {
                         const data = snap.data();
-                        res.json(data);
+                        return res.json(data);
                     });
             } else {
-                res.status(401).json({
+                return res.status(401).json({
                     message: "no existis",
                 });
             }
@@ -128,30 +102,31 @@ app.get("/room/:roomId", (req, res) => {
 
 app.post("/jugadas", function (req, res) {
     const { rtdbRoomId, player } = req.body;
-
-    if (player === "1") {
+    if (player == 1) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
 
         roomRef.update({
-            status: `${req.body.status}`,
-            online: `${req.body.online}`,
-            fullName: `${req.body.name}`,
+            status: Boolean(req.body.status),
+            online: Boolean(req.body.online),
+            fullName: req.body.name,
         });
+        return res.json("ok");
     }
-    if (player === "2") {
+    if (player == 2) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
         roomRef.update({
-            status: `${req.body.status}`,
-            online: `${req.body.online}`,
-            fullName: `${req.body.name}`,
+            status: Boolean(req.body.status),
+            online: Boolean(req.body.online),
+            fullName: req.body.name,
         });
+        return res.json("ok");
     }
 });
 
 app.post("/play", function (req, res) {
     const { rtdbRoomId, player } = req.body;
 
-    if (player === 1) {
+    if (player == 1) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
 
         const data = roomRef.update(
@@ -163,8 +138,9 @@ app.post("/play", function (req, res) {
                 return data[0];
             }
         );
+        return res.json("ok");
     }
-    if (player === 2) {
+    if (player == 2) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
 
         const data = roomRef.update(
@@ -176,6 +152,7 @@ app.post("/play", function (req, res) {
                 return data[1];
             }
         );
+        return res.json("ok");
     }
 });
 
@@ -189,12 +166,13 @@ app.post("/cleanPlay", function (req, res) {
             {
                 status: req.body.status,
                 name: req.body.name,
-                online: req.body.online,
+                online: Boolean(req.body.online),
             },
             function () {
                 return data[0];
             }
         );
+        return res.json("ok");
     }
     if (player === 2) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
@@ -203,42 +181,63 @@ app.post("/cleanPlay", function (req, res) {
             {
                 status: req.body.status,
                 name: req.body.name,
-                online: req.body.online,
+                online: Boolean(req.body.online),
             },
             function () {
                 return data[1];
             }
         );
+        return res.json("ok");
     }
 });
 
 app.post("/rtdbRoomId", function (req, res) {
     const { roomId } = req.body;
-
-    roomsCollection
-        .doc(roomId)
-        .get()
-        .then((doc) => {
-            const docu = doc.data();
-            res.json(docu);
-        });
+    try {
+        roomsCollection
+            .doc(roomId)
+            .get()
+            .then((doc) => {
+                const docu = doc.data();
+                return res.json(docu);
+            });
+    } catch (error) {
+        res.status(401).send("El ID de la sala no existe, pruebe otro");
+    }
 });
 
 app.post("/history", function (req, res) {
     const { rtdbRoomId, player } = req.body;
-    const currentState = state.getState();
 
-    const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-
-    const data = roomRef.update(
-        {
-            victory1: req.body.victory1,
-            victory2: req.body.victory2,
-        },
-        function () {
-            console.log("la data", data);
-
-            return data;
+    console.log("la history body", req.body);
+    if (player === "1") {
+        const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
+        if (req.body.victory === 0) {
+            return (req.body.victory = 1);
         }
-    );
+        const data = roomRef.update(
+            {
+                player1: req.body.victory,
+            },
+            function () {
+                return data;
+            }
+        );
+        return res.json("ok");
+    }
+    if (player === "2") {
+        const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
+        if (req.body.victory === 0) {
+            return (req.body.victory = 1);
+        }
+        const data = roomRef.update(
+            {
+                player2: req.body.victory,
+            },
+            function () {
+                return data;
+            }
+        );
+        return res.json("ok");
+    }
 });

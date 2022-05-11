@@ -10,7 +10,6 @@ export function welcomePage(params) {
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
-       
     `;
 
     const buttonNewGame = div.querySelector("button-new-game");

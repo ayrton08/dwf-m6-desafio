@@ -15,7 +15,7 @@ export function buttonPlay() {
 
             button.className = "root";
             button.innerHTML = `
-                <span>¡Jugar!</span>
+                <slot name="text"></slot>
                 ${this.getStyles()}    
             `;
 
