@@ -212,12 +212,15 @@ app.post("/history", function (req, res) {
     console.log("la history body", req.body);
     if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-        if (req.body.victory === 0) {
-            return (req.body.victory = 1);
+
+        var firstVictory = req.body.victory;
+        
+        if (firstVictory == 0) {
+            return (firstVictory = 1);
         }
         const data = roomRef.update(
             {
-                player1: req.body.victory,
+                player1: firstVictory,
             },
             function () {
                 return data;
@@ -227,12 +230,15 @@ app.post("/history", function (req, res) {
     }
     if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-        if (req.body.victory === 0) {
-            return (req.body.victory = 1);
+        
+        var firstVictory = req.body.victory;
+        
+        if (firstVictory == 0) {
+            return (firstVictory = 1);
         }
         const data = roomRef.update(
             {
-                player2: req.body.victory,
+                player2: firstVictory,
             },
             function () {
                 return data;

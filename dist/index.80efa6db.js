@@ -16657,15 +16657,16 @@ function historyComp() {
             _state.state.listenRoom();
             const data = _state.state.getState();
             console.log("player1", data);
-            const player = data.rtdbData.history.player1 //me da como undefined y me rompe el componment
-            ;
-            console.log("player", player);
+            const player1 = data.rtdbData.history.player1; //me da como undefined y me rompe el componment
+            const player2 = data.rtdbData.history.player2;
+            const nameOne = data.rtdbData.jugador1.name;
+            const nameTwo = data.rtdbData.jugador2.name;
             div.className = "container";
             div.innerHTML = `
                 <div>Score</div>
                 <div class="content">
-                <span>Vos: 1 </span>
-                <span>Maquina: ${player}</span>
+                <span>${nameOne}: ${player1}</span>
+                <span>${nameTwo}: ${player2}</span>
                 </div>
                 ${this.getStyle()}
             `;
@@ -16706,6 +16707,6 @@ function historyComp() {
     customElements.define("history-comp", History);
 }
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../../state":"4zUkS"}]},["eH30j","jYSt7"], "jYSt7", "parcelRequire04f1")
+},{"../../state":"4zUkS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["eH30j","jYSt7"], "jYSt7", "parcelRequire04f1")
 
 //# sourceMappingURL=index.80efa6db.js.map
