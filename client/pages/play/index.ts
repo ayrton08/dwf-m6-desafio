@@ -14,7 +14,7 @@ export function play(params) {
     </div>
     `;
     const player = localStorage.getItem("player");
-
+    
     const piedra = div.querySelector("piedra-comp");
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
@@ -36,7 +36,6 @@ export function play(params) {
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
         state.subscribe(goToAwaitJugada);
-        console.log("jugue");
 
         state
             .setPlay({

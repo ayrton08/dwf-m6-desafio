@@ -15,10 +15,11 @@ export function historyComp() {
             const div = document.createElement("div");
 
             state.listenRoom();
-            const data = state.getState();
-            console.log("player1", data);
 
-            const player1 = data.rtdbData.history.player1; //me da como undefined y me rompe el componment
+            const data = state.getState();
+            
+            const player = Number(sessionStorage.getItem("victorias")); //me da como undefined y me rompe el componment
+            console.log("data hist" ,data,data.rtdbData.history);
             const player2 = data.rtdbData.history.player2;
 
             const nameOne = data.rtdbData.jugador1.name;
@@ -28,7 +29,7 @@ export function historyComp() {
             div.innerHTML = `
                 <div>Score</div>
                 <div class="content">
-                <span>${nameOne}: ${player1}</span>
+                <span>${nameOne}: ${player}</span>
                 <span>${nameTwo}: ${player2}</span>
                 </div>
                 ${this.getStyle()}

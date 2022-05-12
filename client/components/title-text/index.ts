@@ -26,9 +26,10 @@ export function titleText() {
             <style>
                 .root {
                 margin: 0;
+                height: 250px;
                 color: #F8C471;
                 font-family: 'Caveat', cursive;
-                font-size: 45px;
+                font-size: 30px;
                 
             }
             h1 {

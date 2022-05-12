@@ -12,10 +12,9 @@ export function buttonPlay() {
             this.attachShadow({ mode: "open" });
 
             const button = document.createElement("button");
-
             button.className = "root";
             button.innerHTML = `
-                <slot name="text"></slot>
+                <slot name="text">Jugar</slot>
                 ${this.getStyles()}    
             `;
 
@@ -28,10 +27,9 @@ export function buttonPlay() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 322px;
+                width: 350px;
                 height: 87px;
                 border-radius: 10px;
-
                 font-size: 45px; 
                 font-family: 'Odibee Sans', cursive;
                 color: #D8FCFC;

@@ -719,11 +719,11 @@ function yourName(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
+        <title-text></title-text>
+        <input class="name" type="text" placeholder="Your Name"></input>
         <button-play>
-        <div slot="text">Empezar</div>
+        <div slot="text">Start</div>
         </button-play>
-        
-        <input class="name"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -733,20 +733,30 @@ function yourName(params) {
     const button = div.querySelector("button-play");
     const player = localStorage.getItem("player");
     _state.state.setStatus(player, false);
+    const setHistory = ()=>{
+        if (_state.state.data.rtdbRoomId && !_state.state.data.historySave && player === "1") {
+            console.log("set>History", _state.state.data.rtdbRoomId);
+            _state.state.data.historySave = true;
+            _state.state.history(0);
+        }
+    };
     button.addEventListener("click", (event)=>{
         const nameValue = document.querySelector("input").value;
         _state.state.setFullName(nameValue);
         div.innerHTML = `<counter-room></counter-room>`;
         _state.state.signIn().then(()=>{
             if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
-                console.log("player uno", _state.state.data);
                 _state.state.listenRoom();
+                sessionStorage.setItem("victorias", "0");
+                _state.state.history(0);
                 _state.state.setStatus(player, true);
                 return params.goTo("/waitRoom");
             });
             else _state.state.askNewRoom().then(()=>{
+                _state.state.subscribe(setHistory);
                 _state.state.listenRoom();
                 _state.state.setStatus(player, true);
+                sessionStorage.setItem("victorias", "0");
                 return params.goTo("/codeRoom");
             });
         });
@@ -769,8 +779,7 @@ const state = {
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {},
-        playerOneWaiting: true,
-        history: {}
+        historySave: false
     },
     listeners: [],
     init () {
@@ -933,14 +942,13 @@ const state = {
         else return "perdi";
     },
     win () {
-        if (!!sessionStorage.getItem("victorias")) {
-            console.log("entro en el if");
-            const value = sessionStorage.getItem("victorias");
-            return sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
-        } else return sessionStorage.setItem("victorias", "1");
+        const value = sessionStorage.getItem("victorias");
+        sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
+        return Number(value) + 1;
     },
     history (victory) {
         const rtdbRoomId = this.getState().rtdbRoomId;
+        console.log("room id", rtdbRoomId);
         const player = localStorage.getItem("player");
         return fetch(API_BASE_URL + "/history", {
             method: "post",
@@ -15621,11 +15629,12 @@ function codeRoom(params) {
     const codigo = JSON.parse(localStorage.getItem("state"));
     const player = localStorage.getItem("player");
     const codeRoom1 = div.querySelector(".code");
-    codigo.roomId && (codeRoom1.innerHTML = `Comparti el siguiente codigo con tu amigo: <span class="number">${codigo.roomId}</span>`);
+    codigo.roomId && (codeRoom1.innerHTML = `Share the code: <span class="number">${codigo.roomId}</span> with your opponent`);
     const goToRoom = ()=>{
         const data = _state.state.getState();
         if (data.rtdbData?.jugador2?.status == true && location.pathname.includes("codeRoom")) return params.goTo("/waitRoom");
     };
+    _state.state.history(0);
     _state.state.accessToRoom().then(()=>{
         _state.state.subscribe(goToRoom);
         return _state.state.listenRoom();
@@ -15664,7 +15673,6 @@ function play(params) {
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
         _state.state.subscribe(goToAwaitJugada);
-        console.log("jugue");
         _state.state.setPlay({
             choise: "piedra",
             name: name,
@@ -15711,18 +15719,16 @@ function yourCodeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        estas en el code room
-        <button-play>
-        <div slot="text">Ingresar a la sala</div>
-        </button-play>
-        <input class="name"> </input>
+        <title-text></title-text>
+        <button-room></button-room>
+        <input class="name" placeholder="code room"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
-    const button = div.querySelector("button-play");
+    const button = div.querySelector("button-room");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
         const codeValue = document.querySelector("input").value;
@@ -15823,7 +15829,6 @@ function perdiste(params) {
 
         `;
     const player = Number(localStorage.getItem("player"));
-    console.log(_state.state.getState());
     const name = _state.state.data.fullName;
     _state.state.cleanPlay({
         name: name,
@@ -15899,19 +15904,18 @@ function jugada(params) {
         `;
     const player = localStorage.getItem("player");
     const resultado = _state.state.whoWins(jugador1, jugador2);
-    var victory = Number(sessionStorage.getItem("victorias"));
     setTimeout(()=>{
         if (resultado === "gane" && player === "1") {
-            _state.state.win();
-            _state.state.history(victory);
+            const numberOfVictories = _state.state.win();
+            _state.state.history(numberOfVictories);
             return params.goTo("/result/ganaste");
         }
         if (resultado === "gane" && player === "2") return params.goTo("/result/perdiste");
         if (resultado === "empate") return params.goTo("/result/empate");
         if (resultado === "perdi" && player === "1") return params.goTo("/result/perdiste");
         if (resultado === "perdi" && player === "2") {
-            _state.state.win();
-            _state.state.history(victory);
+            const numberOfVictories = _state.state.win();
+            _state.state.history(numberOfVictories);
             return params.goTo("/result/ganaste");
         }
     }, 700);
@@ -15925,8 +15929,20 @@ parcelHelpers.export(exports, "waitRoom", ()=>waitRoom
 );
 var _state = require("../../state");
 function waitRoom(params) {
-    const div = document.createElement("button");
-    div.textContent = "jugar";
+    const div = document.createElement("div");
+    const currentState = _state.state.getState().roomId;
+    div.innerHTML = `
+            
+        <div>Room: <span class="room-id">${currentState}</span></div>
+        </div>
+        <instructions-comp></instructions-comp>
+        <button-play></button-play>
+        <div class="container">
+        <piedra-comp></piedra-comp>
+        <papel-comp></papel-comp>
+        <tijera-comp></tijera-comp>
+        </div>
+    `;
     const player = localStorage.getItem("player");
     div.addEventListener("click", ()=>{
         _state.state.setStatus(player, true);
@@ -15951,13 +15967,14 @@ function waitPlayer(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que ${name} presione ¡Jugar!... </div>
+        <div class="text-wait">Esperando a que ${name} presione ¡Jugar!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
+    console.log(_state.state.data);
     const goToPlay = ()=>{
         const data = _state.state.getState();
         if (data.rtdbData?.jugador1?.online && data.rtdbData?.jugador2?.online && location.pathname.includes("waitPlayer")) {
@@ -16001,7 +16018,7 @@ function waitJugada(params) {
             };
             currentState.rtdbData.jugador1.choise = null;
             currentState.rtdbData.jugador2.choise = null;
-            currentState.playerOneWaiting = true;
+            // currentState.playerOneWaiting = true;
             _state.state.setState(currentState);
             return params.goTo("/result/jugada", {
                 choise
@@ -16042,9 +16059,10 @@ function titleText() {
             <style>
                 .root {
                 margin: 0;
+                height: 250px;
                 color: #F8C471;
                 font-family: 'Caveat', cursive;
-                font-size: 45px;
+                font-size: 30px;
                 
             }
             h1 {
@@ -16188,7 +16206,7 @@ function buttonPlay() {
             const button = document.createElement("button");
             button.className = "root";
             button.innerHTML = `
-                <slot name="text"></slot>
+                <slot name="text">Jugar</slot>
                 ${this.getStyles()}    
             `;
             this.shadowRoot.appendChild(button);
@@ -16200,10 +16218,9 @@ function buttonPlay() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 322px;
+                width: 350px;
                 height: 87px;
                 border-radius: 10px;
-
                 font-size: 45px; 
                 font-family: 'Odibee Sans', cursive;
                 color: #D8FCFC;
@@ -16240,7 +16257,8 @@ function instructionsComp() {
             const div = document.createElement("div");
             div.className = "root";
             div.innerHTML = `
-                <span>Presioná jugar y elegí: piedra, papel o tijera antes de que pasen los 3 segundos.</span>
+                
+                <span>Presioná jugar y elegí: piedra, papel o tijera antes de que pasen los 5 segundos.</span>
                 ${this.getStyle()}
             `;
             this.shadowRoot.appendChild(div);
@@ -16249,13 +16267,13 @@ function instructionsComp() {
             return `
             <style>
                 .root {
-                margin: 0;
-                color: #000000;
-                font-family: 'Caveat', cursive;
-                font-size: 45px;
-                font-weight: bold; 
-                text-align: center;
- 
+                    margin: 0;
+                    color: #000000;
+                    font-family: 'Caveat', cursive;
+                    font-size: 35px;
+                    font-weight: bold; 
+                    text-align: center;
+                    width: 380px;
             }
             
             </style>
@@ -16443,7 +16461,7 @@ function buttonStart() {
             const button = document.createElement("button");
             button.className = "root";
             button.innerHTML = `
-                <span>Nuevo Juego</span>
+                <span>New Game</span>
                 ${this.getStyles()}    
             `;
             this.shadowRoot.appendChild(button);
@@ -16455,7 +16473,7 @@ function buttonStart() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 400px;
+                min-width: 350px;
                 height: 87px;
                 border-radius: 10px;
 
@@ -16495,7 +16513,7 @@ function buttonRoom() {
             const button = document.createElement("button");
             button.className = "root";
             button.innerHTML = `
-                <span>Ingresar a una Sala</span>
+                <span>Enter a Room</span>
                 ${this.getStyles()}    
             `;
             this.shadowRoot.appendChild(button);
@@ -16507,11 +16525,10 @@ function buttonRoom() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 400px;
+                width: 350px;
                 height: 87px;
                 border-radius: 10px;
-
-                font-size: 38px; 
+                font-size: 45px; 
                 font-family: 'Odibee Sans', cursive;
                 color: #D8FCFC;
                 display: flex;
@@ -16559,6 +16576,10 @@ function counterRoom() {
         getStyle() {
             return `
             <style>
+                .root{
+                    padding-top: 150px;
+                }
+            
                 .clock {
 	        width: 300px;
 	        height: 300px;
@@ -16583,50 +16604,76 @@ function counterRoom() {
             `;
         }
         counter() {
-            let counter = 5;
+            let counter = 6;
             let interval = setInterval(()=>{
                 counter--;
-                if (counter == 4) {
+                if (counter == 5) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
-                    shadow.textContent = "Creando";
+                    shadow.textContent = "Creating";
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#F8C471";
-                } else if (counter == 3) {
+                } else if (counter == 4) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
-                    shadow.textContent = "tu";
+                    shadow.textContent = "your";
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#2ECC71 ";
-                } else if (counter == 2) {
+                } else if (counter == 3) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.textContent = "Game Room";
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#D2B4DE";
-                } else if (counter == 1) {
+                } else if (counter == 2) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.innerHTML = `
                     <span class="time">Almost Ready</span>
                     <style>
                         .time {
                     font-size: 40px;
-                    color: crimson;
+                    
                     }
                     </style>
                     `;
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#F1948A";
-                } else if (counter == 0) {
+                } else if (counter == 1) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.innerHTML = `
-                    <span class="time">Sorry this is takiig too long</span>
+                    <span class="time">Sorry... this is taking too long</span>
                     <style>
                         .time {
                     font-size: 25px;
-                    color: crimson;
+                    
                     }
                     </style>
                     `;
                     let circulo = this.shadowRoot.querySelector(".clock");
-                    circulo.style.background = "#F1948A";
+                    circulo.style.background = "blue";
+                } else if (counter == 1) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Sorry... this is taking too long</span>
+                    <style>
+                        .time {
+                    font-size: 25px;
+                    
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "blue";
+                } else if (counter == 0) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Be patient please</span>
+                    <style>
+                        .time {
+                    font-size: 25px;
+                    
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "yellow";
                 } else clearInterval(interval);
             }, 1000);
             return interval;
@@ -16656,8 +16703,8 @@ function historyComp() {
             const div = document.createElement("div");
             _state.state.listenRoom();
             const data = _state.state.getState();
-            console.log("player1", data);
-            const player1 = data.rtdbData.history.player1; //me da como undefined y me rompe el componment
+            const player = Number(sessionStorage.getItem("victorias")); //me da como undefined y me rompe el componment
+            console.log("data hist", data, data.rtdbData.history);
             const player2 = data.rtdbData.history.player2;
             const nameOne = data.rtdbData.jugador1.name;
             const nameTwo = data.rtdbData.jugador2.name;
@@ -16665,7 +16712,7 @@ function historyComp() {
             div.innerHTML = `
                 <div>Score</div>
                 <div class="content">
-                <span>${nameOne}: ${player1}</span>
+                <span>${nameOne}: ${player}</span>
                 <span>${nameTwo}: ${player2}</span>
                 </div>
                 ${this.getStyle()}

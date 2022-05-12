@@ -1,3 +1,5 @@
+import { state } from "../../state";
+
 export function instructionsComp() {
     class Instructions extends HTMLElement {
         constructor() {
@@ -10,33 +12,35 @@ export function instructionsComp() {
 
         render() {
             this.attachShadow({ mode: "open" });
+
+            const div = document.createElement("div");
+            div.className = "root";
             
-            const div = document.createElement("div")
-            div.className = "root"
 
             div.innerHTML = `
-                <span>Presioná jugar y elegí: piedra, papel o tijera antes de que pasen los 3 segundos.</span>
+                
+                <span>Presioná jugar y elegí: piedra, papel o tijera antes de que pasen los 5 segundos.</span>
                 ${this.getStyle()}
-            `
-            this.shadowRoot.appendChild(div)
+            `;
+            this.shadowRoot.appendChild(div);
         }
 
-        getStyle(){
+        getStyle() {
             return `
             <style>
                 .root {
-                margin: 0;
-                color: #000000;
-                font-family: 'Caveat', cursive;
-                font-size: 45px;
-                font-weight: bold; 
-                text-align: center;
- 
+                    margin: 0;
+                    color: #000000;
+                    font-family: 'Caveat', cursive;
+                    font-size: 35px;
+                    font-weight: bold; 
+                    text-align: center;
+                    width: 380px;
             }
             
             </style>
 
-            `
+            `;
         }
     }
     customElements.define("instructions-comp", Instructions);

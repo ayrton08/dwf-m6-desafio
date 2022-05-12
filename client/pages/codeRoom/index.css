@@ -1,7 +1,9 @@
 .code{
     font-size: 45px;
+    margin: 30px 0 0 0 ;
+    width: 390px;
+    text-align: center;
 }
 .number{
     color: red;
-    
 }

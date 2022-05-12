@@ -17,7 +17,7 @@ export function buttonRoom() {
             button.className = "root";
 
             button.innerHTML = `
-                <span>Ingresar a una Sala</span>
+                <span>Enter a Room</span>
                 ${this.getStyles()}    
             `
 
@@ -30,11 +30,10 @@ export function buttonRoom() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 400px;
+                width: 350px;
                 height: 87px;
                 border-radius: 10px;
-
-                font-size: 38px; 
+                font-size: 45px; 
                 font-family: 'Odibee Sans', cursive;
                 color: #D8FCFC;
                 display: flex;

@@ -17,7 +17,7 @@ export function buttonStart() {
             button.className = "root";
 
             button.innerHTML = `
-                <span>Nuevo Juego</span>
+                <span>New Game</span>
                 ${this.getStyles()}    
             `
 
@@ -30,7 +30,7 @@ export function buttonStart() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 400px;
+                min-width: 350px;
                 height: 87px;
                 border-radius: 10px;
 

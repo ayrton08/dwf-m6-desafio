@@ -213,14 +213,9 @@ app.post("/history", function (req, res) {
     if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
 
-        var firstVictory = req.body.victory;
-        
-        if (firstVictory == 0) {
-            return (firstVictory = 1);
-        }
         const data = roomRef.update(
             {
-                player1: firstVictory,
+                player1: req.body.victory,
             },
             function () {
                 return data;
@@ -230,15 +225,9 @@ app.post("/history", function (req, res) {
     }
     if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-        
-        var firstVictory = req.body.victory;
-        
-        if (firstVictory == 0) {
-            return (firstVictory = 1);
-        }
         const data = roomRef.update(
             {
-                player2: firstVictory,
+                player2: req.body.victory,
             },
             function () {
                 return data;

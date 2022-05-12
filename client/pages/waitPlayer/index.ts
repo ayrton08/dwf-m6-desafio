@@ -18,16 +18,17 @@ export function waitPlayer(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que ${name} presione ¡Jugar!... </div>
+        <div class="text-wait">Esperando a que ${name} presione ¡Jugar!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
         <tijera-comp></tijera-comp>
         </div>
     `;
+    console.log(state.data);
+    
     const goToPlay = () => {
         const data = state.getState();
-        
 
         if (
             data.rtdbData?.jugador1?.online &&

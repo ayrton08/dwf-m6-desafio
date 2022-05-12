@@ -4,11 +4,9 @@ export function yourCodeRoom(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     div.innerHTML = `
-        estas en el code room
-        <button-play>
-        <div slot="text">Ingresar a la sala</div>
-        </button-play>
-        <input class="name"> </input>
+        <title-text></title-text>
+        <button-room></button-room>
+        <input class="name" placeholder="code room"> </input>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -16,7 +14,7 @@ export function yourCodeRoom(params) {
         </div>
     `;
 
-    const button = div.querySelector("button-play");
+    const button = div.querySelector("button-room");
 
     button.addEventListener("click", (event) => {
         event.preventDefault();

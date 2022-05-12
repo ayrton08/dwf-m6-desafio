@@ -12,8 +12,7 @@ const state = {
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {},
-        playerOneWaiting: true,
-        history: {},
+        historySave:false
     },
 
     listeners: [],
@@ -86,6 +85,7 @@ const state = {
                     return res.json();
                 })
                 .then((data) => {
+                    
                     currentState.roomId = data.id;
                     if (callback) {
                         callback();
@@ -119,15 +119,15 @@ const state = {
 
     setState(newState) {
         this.data = newState;
-
+        
         for (const cb of this.listeners) {
             cb();
         }
         localStorage.setItem("state", JSON.stringify(newState));
-
+        
         return Promise.resolve();
     },
-
+    
     subscribe(callback: (any) => any) {
         this.listeners.push(callback);
     },
@@ -211,8 +211,7 @@ const state = {
             .then((data) => {
                 currentState.rtdbRoomId = data.rtdbRoomId;
                 return state.setState(currentState);
-            })
-            
+            });
     },
 
     whoWins(player1: Jugada, player2: any) {
@@ -232,22 +231,15 @@ const state = {
         }
     },
     win() {
-        if (!!sessionStorage.getItem("victorias")) {
-            console.log("entro en el if");
-
-            const value = sessionStorage.getItem("victorias");
-            return sessionStorage.setItem(
-                "victorias",
-                JSON.stringify(Number(value) + 1)
-            );
-        } else {
-            return sessionStorage.setItem("victorias", "1");
-        }
+        const value = sessionStorage.getItem("victorias");
+        sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
+        return Number(value) + 1
     },
 
     history(victory) {
-        
         const rtdbRoomId = this.getState().rtdbRoomId;
+        console.log("room id", rtdbRoomId);
+        
         const player = localStorage.getItem("player");
         return fetch(API_BASE_URL + "/history", {
             method: "post",
@@ -263,8 +255,6 @@ const state = {
             return res.json();
         });
     },
-
-   
 };
 
 export { state };

@@ -27,6 +27,10 @@ export function counterRoom() {
         getStyle() {
             return `
             <style>
+                .root{
+                    padding-top: 150px;
+                }
+            
                 .clock {
 	        width: 300px;
 	        height: 300px;
@@ -51,53 +55,79 @@ export function counterRoom() {
             `;
         }
         counter() {
-            let counter = 5;
+            let counter = 6;
             let interval = setInterval(() => {
                 counter--;
-                if (counter == 4) {
+                if (counter == 5) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
-                    shadow.textContent = "Creando";
+                    shadow.textContent = "Creating";
 
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#F8C471";
-                } else if (counter == 3) {
+                } else if (counter == 4) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
-                    shadow.textContent = "tu";
+                    shadow.textContent = "your";
 
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#2ECC71 ";
-                } else if (counter == 2) {
+                } else if (counter == 3) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.textContent = "Game Room";
 
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#D2B4DE";
-                } else if (counter == 1) {
+                } else if (counter == 2) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.innerHTML = `
                     <span class="time">Almost Ready</span>
                     <style>
                         .time {
                     font-size: 40px;
-                    color: crimson;
+                    
                     }
                     </style>
                     `;
                     let circulo = this.shadowRoot.querySelector(".clock");
                     circulo.style.background = "#F1948A";
-                } else if (counter == 0) {
+                } else if (counter == 1) {
                     let shadow = this.shadowRoot.querySelector(".seconds");
                     shadow.innerHTML = `
-                    <span class="time">Sorry this is takiig too long</span>
+                    <span class="time">Sorry... this is taking too long</span>
                     <style>
                         .time {
                     font-size: 25px;
-                    color: crimson;
+                    
                     }
                     </style>
                     `;
                     let circulo = this.shadowRoot.querySelector(".clock");
-                    circulo.style.background = "#F1948A";
+                    circulo.style.background = "blue";
+                } else if (counter == 1) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Sorry... this is taking too long</span>
+                    <style>
+                        .time {
+                    font-size: 25px;
+                    
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "blue";
+                } else if (counter == 0) {
+                    let shadow = this.shadowRoot.querySelector(".seconds");
+                    shadow.innerHTML = `
+                    <span class="time">Be patient please</span>
+                    <style>
+                        .time {
+                    font-size: 25px;
+                    
+                    }
+                    </style>
+                    `;
+                    let circulo = this.shadowRoot.querySelector(".clock");
+                    circulo.style.background = "yellow";
                 } else {
                     clearInterval(interval);
                 }

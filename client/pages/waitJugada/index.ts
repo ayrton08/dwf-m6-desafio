@@ -36,7 +36,7 @@ export function waitJugada(params) {
             };
             currentState.rtdbData.jugador1.choise = null;
             currentState.rtdbData.jugador2.choise = null;
-            currentState.playerOneWaiting = true;
+            // currentState.playerOneWaiting = true;
             state.setState(currentState);
 
             return params.goTo("/result/jugada", { choise });

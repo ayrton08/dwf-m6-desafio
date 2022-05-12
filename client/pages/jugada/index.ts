@@ -23,12 +23,12 @@ export function jugada(params) {
 
     const resultado = state.whoWins(jugador1, jugador2);
 
-    var victory = Number(sessionStorage.getItem("victorias"));
 
     setTimeout(() => {
         if (resultado === "gane" && player === "1") {
-            state.win()
-            state.history(victory);
+            const numberOfVictories = state.win();
+            state.history(numberOfVictories);
+
             return params.goTo("/result/ganaste");
         }
         if (resultado === "gane" && player === "2") {
@@ -42,8 +42,8 @@ export function jugada(params) {
             return params.goTo("/result/perdiste");
         }
         if (resultado === "perdi" && player === "2") {
-            state.win();
-            state.history(victory);
+            const numberOfVictories = state.win();
+            state.history(numberOfVictories);
             return params.goTo("/result/ganaste");
         }
     }, 700);

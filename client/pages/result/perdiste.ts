@@ -12,7 +12,6 @@ export function perdiste(params) {
 
         `;
     const player = Number(localStorage.getItem("player"));
-    console.log(state.getState());
     
 
     const name = state.data.fullName;
