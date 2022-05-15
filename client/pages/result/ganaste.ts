@@ -6,24 +6,32 @@ export function ganaste(params) {
     div.className = "container-ganaste";
 
     div.innerHTML = `
-        <img src="${image}">
-        <history-comp></history-comp>
-        <button-playagain></button-playagain>
+        <span class="congratulation">¡Congratulations 😎!</span>
+    `             
     
-        `;
     const player = Number(localStorage.getItem("player"));
     
     const name = state.data.fullName;
     state.cleanPlay({ name: name, status: false, player: player, online:false });
-    
-    
-    
+    setTimeout(()=>{
 
-    const button = div.querySelector("button-playagain");
-    button.addEventListener("click", (event) => {
-        event.preventDefault();
-        return params.goTo("/waitRoom");
-    });
+        div.innerHTML = `
+        <img src="${image}">
+        <history-comp></history-comp>
+        <button-playagain></button-playagain>
+        
+        `;
+            
+            
+            
+        
+            const button = div.querySelector("button-playagain");
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                return params.goTo("/waitRoom");
+            });
+    },1500)
+
 
     return div;
 }

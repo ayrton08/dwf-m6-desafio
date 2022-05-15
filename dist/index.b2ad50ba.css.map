@@ -1,0 +1,1 @@
+{"mappings":"AAAA;;;;;;;AAOA","sources":["client/pages/waitPlayer/index.css"],"sourcesContent":[".text-wait {\r\n    font-family: \"Caveat\", cursive;\r\n    font-size: 35px;\r\n    font-weight: bold;\r\n    text-align: center;\r\n}\r\n\r\n.name-player-one{\r\n    color:blue\r\n}\r\n"],"names":[],"version":3,"file":"index.b2ad50ba.css.map","sourceRoot":"/__parcel_source_root/"}

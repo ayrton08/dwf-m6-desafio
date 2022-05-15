@@ -15,7 +15,6 @@ export function yourCodeRoom(params) {
     `;
 
     const button = div.querySelector("button-room");
-
     button.addEventListener("click", (event) => {
         event.preventDefault();
         const codeValue = document.querySelector("input").value;
@@ -25,11 +24,9 @@ export function yourCodeRoom(params) {
 
         state
             .setState(currentState)
-
             .then(() => {
                 state.getRtdbRoomId();
                 state.listenRoom();
-
                 return params.goTo("/yourName");
             });
     });

@@ -3,30 +3,70 @@ import { state } from "../../state";
 
 export function waitPlayer(params) {
     state.listenRoom();
-
-    const player = localStorage.getItem("player");
-    const currentState = state.getState();
-
-    var name = "";
-    if (player === "1") {
-        name = currentState.rtdbData.jugador2.name;
-    }
-    if (player === "2") {
-        name = currentState.rtdbData.jugador1.name;
-    }
-
     const div = document.createElement("div");
     div.className = "contenedor";
-    div.innerHTML = `
-        <div class="text-wait">Esperando a que ${name} presione ¡Jugar!... </div>
-        <div class="container">
-        <piedra-comp></piedra-comp>
-        <papel-comp></papel-comp>
-        <tijera-comp></tijera-comp>
-        </div>
-    `;
-    console.log(state.data);
-    
+    const currentState = state.getState();
+
+    if (state.data.firstRound) {
+        const player1 = currentState.rtdbData.jugador1.fullName;
+        const player2 = currentState.rtdbData.jugador2.fullName;
+
+        const history1 = currentState.rtdbData.history.player1;
+        const history2 = currentState.rtdbData.history.player2;
+
+        const player = localStorage.getItem("player")
+        if(player === "1"){
+            div.innerHTML = `
+            <div class="puntuacion">
+            <div>
+            <div>${player1}: ${history1}</div>
+            <div class="player-two">${player2}: ${history2}</div>
+            </div>
+            
+            <div>
+                Room: <span class="room-id">${currentState.roomId}</span></div>
+            </div>
+            </div>    
+            <div class="text-wait">Esperando a que tu ${player2} presione ¡Jugar!... </div>
+            <div class="container">
+            <piedra-comp></piedra-comp>
+            <papel-comp></papel-comp>
+            <tijera-comp></tijera-comp>
+            </div>
+            `;  
+        }
+        if(player === "2"){
+            div.innerHTML = `
+            <div class="puntuacion">
+            <div>
+            <div>${player1}: ${history1}</div>
+            <div class="player-two">${player2}: ${history2}</div>
+            </div>
+            
+            <div>
+                Room: <span class="room-id">${currentState.roomId}</span></div>
+            </div>
+            </div>    
+            <div class="text-wait">Esperando a que tu <span class="name-player-one">${player1}</span> presione ¡Jugar!... </div>
+            <div class="container">
+            <piedra-comp></piedra-comp>
+            <papel-comp></papel-comp>
+            <tijera-comp></tijera-comp>
+            </div>
+            `; 
+        }
+        
+    } else {
+        div.innerHTML = `
+            <div class="text-wait">Esperando a que tu oponente presione ¡Jugar!... </div>
+            <div class="container">
+            <piedra-comp></piedra-comp>
+            <papel-comp></papel-comp>
+            <tijera-comp></tijera-comp>
+            </div>
+        `;
+    }
+
     const goToPlay = () => {
         const data = state.getState();
 

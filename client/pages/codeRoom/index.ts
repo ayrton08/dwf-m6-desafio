@@ -23,14 +23,13 @@ export function codeRoom(params) {
     const goToRoom = () => {
         const data = state.getState();
         if (
-            data.rtdbData?.jugador2?.status == true &&
+            data.rtdbData?.jugador2?.online == true &&
             location.pathname.includes("codeRoom")
         ) {
             return params.goTo("/waitRoom");
         }
     };
     state.history(0);
-
     state.accessToRoom().then(() => {
         state.subscribe(goToRoom);
         return state.listenRoom();

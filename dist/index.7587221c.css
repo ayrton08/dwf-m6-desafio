@@ -1,0 +1,22 @@
+.code {
+  font-size: 45px;
+}
+
+.number {
+  color: red;
+}
+
+.waiting-play {
+  text-align: center;
+  color: beige;
+  padding-top: 100px;
+  font-family: Caveat, cursive;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.name-jugada {
+  color: #8a2be2;
+}
+
+/*# sourceMappingURL=index.7587221c.css.map */

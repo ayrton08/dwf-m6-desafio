@@ -16,7 +16,7 @@ export function waitJugada(params) {
 
     div.className = "contenedor";
     div.innerHTML = `
-        <div>Esperando a que tu ${name} Juegue!... </div>
+        <div class="waiting-play">Esperando a que tu <span class="name-jugada">${name}</span> Juegue!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>

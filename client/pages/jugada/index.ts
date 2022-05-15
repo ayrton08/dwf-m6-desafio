@@ -13,16 +13,27 @@ export function jugada(params) {
 
     const jugador1 = history.state.choise.jugador1;
     const jugador2 = history.state.choise.jugador2;
-
-    div.innerHTML = `
-        ${jugada[jugador1]}
-        ${jugada[jugador2]}
-        `;
-
     const player = localStorage.getItem("player");
 
-    const resultado = state.whoWins(jugador1, jugador2);
+    if(player === "1"){
 
+        div.innerHTML = `
+            ${jugada[jugador2]}
+            ${jugada[jugador1]}
+            `;
+    }    
+    if(player === "2"){
+
+        div.innerHTML = `
+            ${jugada[jugador1]}
+            ${jugada[jugador2]}
+            `;
+    }    
+
+
+    const resultado = state.whoWins(jugador1, jugador2);
+    const currentState = state.getState()
+    currentState.firstRound = true
 
     setTimeout(() => {
         if (resultado === "gane" && player === "1") {
@@ -46,7 +57,7 @@ export function jugada(params) {
             state.history(numberOfVictories);
             return params.goTo("/result/ganaste");
         }
-    }, 700);
+    }, 1000);
 
     return div;
 }

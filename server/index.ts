@@ -102,15 +102,15 @@ app.get("/room/:roomId", (req, res) => {
 
 app.post("/jugadas", function (req, res) {
     const { rtdbRoomId, player } = req.body;
+    
     if (player == 1) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
-
         roomRef.update({
             status: Boolean(req.body.status),
             online: Boolean(req.body.online),
             fullName: req.body.name,
         });
-        return res.json("ok");
+        return res.json();
     }
     if (player == 2) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
@@ -119,7 +119,7 @@ app.post("/jugadas", function (req, res) {
             online: Boolean(req.body.online),
             fullName: req.body.name,
         });
-        return res.json("ok");
+        return res.json();
     }
 });
 
@@ -202,24 +202,21 @@ app.post("/rtdbRoomId", function (req, res) {
                 return res.json(docu);
             });
     } catch (error) {
-        res.status(401).send("El ID de la sala no existe, pruebe otro");
+        return res.status(401).send("El ID de la sala no existe, pruebe otro");
     }
 });
 
 app.post("/history", function (req, res) {
     const { rtdbRoomId, player } = req.body;
 
-    console.log("la history body", req.body);
     if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
 
         const data = roomRef.update(
             {
                 player1: req.body.victory,
-            },
-            function () {
-                return data;
             }
+            
         );
         return res.json("ok");
     }
@@ -228,9 +225,6 @@ app.post("/history", function (req, res) {
         const data = roomRef.update(
             {
                 player2: req.body.victory,
-            },
-            function () {
-                return data;
             }
         );
         return res.json("ok");

@@ -1,3 +1,10 @@
 .text-wait {
-    padding-top: 200px;
+    font-family: "Caveat", cursive;
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.name-player-one{
+    color:blue
 }

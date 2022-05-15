@@ -18,23 +18,25 @@ export function historyComp() {
 
             const data = state.getState();
             
-            const player = Number(sessionStorage.getItem("victorias")); //me da como undefined y me rompe el componment
-            console.log("data hist" ,data,data.rtdbData.history);
-            const player2 = data.rtdbData.history.player2;
+            let {history:{player1}} = data.rtdbData;
 
-            const nameOne = data.rtdbData.jugador1.name;
-            const nameTwo = data.rtdbData.jugador2.name;
-
-            div.className = "container";
-            div.innerHTML = `
-                <div>Score</div>
-                <div class="content">
-                <span>${nameOne}: ${player}</span>
-                <span>${nameTwo}: ${player2}</span>
-                </div>
-                ${this.getStyle()}
-            `;
-            this.shadowRoot.appendChild(div);
+            const player2 = data.rtdbData.history?.player2;
+            
+           
+                const nameOne = data.rtdbData.jugador1.name;
+                const nameTwo = data.rtdbData.jugador2.name;
+    
+                div.className = "container";
+                div.innerHTML = `
+                    <div>Score</div>
+                    <div class="content">
+                    <span>${nameOne}: ${data.rtdbData.history?.player1}</span>
+                    <span>${nameTwo}: ${data.rtdbData.history?.player2}</span>
+                    </div>
+                    ${this.getStyle()}
+                `;
+                this.shadowRoot.appendChild(div);
+            
         }
 
         getStyle() {

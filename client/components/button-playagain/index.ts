@@ -16,7 +16,7 @@ export function buttonPlayAgain() {
             button.className = "root";
 
             button.innerHTML = `
-                <span>Volver a Jugar</span>
+                <span>Play Again</span>
                 ${this.getStyles()}    
             `;
 
@@ -29,7 +29,7 @@ export function buttonPlayAgain() {
                 border: 10px solid #001997;
                 padding:17px 13px;
                 background: #006CFC;
-                width: 322px;
+                width: 350px;
                 height: 87px;
                 border-radius: 10px;
 

@@ -12,7 +12,8 @@ const state = {
         rtdbRoomId: "",
         roomId: "",
         rtdbData: {},
-        historySave:false
+        historySave: false,
+        firstRound: false,
     },
 
     listeners: [],
@@ -27,7 +28,6 @@ const state = {
         const chatroomsRef = ref(rtdb, "/rooms/" + currentState.rtdbRoomId);
 
         onValue(chatroomsRef, (snapshot) => {
-            const currentState = this.getState();
             const value = snapshot.val();
             currentState.rtdbData = value;
             this.setState(currentState);
@@ -85,7 +85,6 @@ const state = {
                     return res.json();
                 })
                 .then((data) => {
-                    
                     currentState.roomId = data.id;
                     if (callback) {
                         callback();
@@ -97,10 +96,11 @@ const state = {
         }
     },
 
-    accessToRoom(callback?) {
+    accessToRoom() {
         const currentState = this.getState();
         const roomIdStorage = this.init();
         const roomId = roomIdStorage.roomId;
+
         return fetch(
             API_BASE_URL + "/room/" + roomId + "?userId=" + currentState.userId
         )
@@ -110,31 +110,29 @@ const state = {
             .then((data) => {
                 (currentState.rtdbRoomId = data.rtdbRoomId),
                     this.setState(currentState);
-
-                if (callback) {
-                    callback();
-                }
             });
     },
 
     setState(newState) {
         this.data = newState;
-        
+
         for (const cb of this.listeners) {
             cb();
         }
         localStorage.setItem("state", JSON.stringify(newState));
-        
+        console.log("state", this.data);
+
         return Promise.resolve();
     },
-    
+
     subscribe(callback: (any) => any) {
         this.listeners.push(callback);
     },
 
     setStatus(player, online) {
         const currentState = this.getState();
-        const rtdbRoomId = this.getState().rtdbRoomId;
+        const { rtdbRoomId } = currentState;
+        if (!rtdbRoomId) return Promise.resolve();
         return fetch(API_BASE_URL + "/jugadas", {
             method: "post",
             headers: {
@@ -198,6 +196,7 @@ const state = {
     getRtdbRoomId() {
         const currentState = this.getState();
         const roomId = currentState.roomId;
+
         return fetch(API_BASE_URL + "/rtdbRoomId", {
             method: "post",
             headers: {
@@ -206,12 +205,19 @@ const state = {
             body: JSON.stringify({ roomId: roomId }),
         })
             .then((res) => {
-                return res.json();
+                console.log(res.status);
+                
+                if(res.status == 200){
+                    return alert("The Room Id doesn't exists")
+                } else {
+                    return res.json();
+                }
             })
             .then((data) => {
                 currentState.rtdbRoomId = data.rtdbRoomId;
                 return state.setState(currentState);
-            });
+            })
+            
     },
 
     whoWins(player1: Jugada, player2: any) {
@@ -233,13 +239,11 @@ const state = {
     win() {
         const value = sessionStorage.getItem("victorias");
         sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
-        return Number(value) + 1
+        return Number(value) + 1;
     },
 
     history(victory) {
         const rtdbRoomId = this.getState().rtdbRoomId;
-        console.log("room id", rtdbRoomId);
-        
         const player = localStorage.getItem("player");
         return fetch(API_BASE_URL + "/history", {
             method: "post",
@@ -251,8 +255,6 @@ const state = {
                 player,
                 victory,
             }),
-        }).then((res) => {
-            return res.json();
         });
     },
 };

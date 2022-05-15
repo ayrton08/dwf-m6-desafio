@@ -20,15 +20,17 @@ export function welcomePage(params) {
         localStorage.setItem("player", "1");
         params.goTo("/yourName");
     });
-
-    buttonRoom.addEventListener("click", (event) => {
+    const handlerButtonRoom = (event) => {
         event.preventDefault();
         localStorage.setItem("player", "2");
 
         params.goTo("/yourCodeRoom");
-    });
+    };
 
-    
+    buttonRoom.addEventListener("click", handlerButtonRoom);
+    // window.onload = () => {
+    //     buttonRoom.removeEventListener("click", handlerButtonRoom);
+    // };
 
     return div;
 }

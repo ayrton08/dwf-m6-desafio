@@ -9,16 +9,33 @@
 .container-wait-room {
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
   gap: 50px;
   display: flex;
 }
 
 .room-id {
+  width: 100%;
+  text-align: end;
   color: red;
-  text-align: center;
+  padding-right: 10px;
   font-family: Caveat, cursive;
-  font-size: 35px;
+  font-size: 20px;
   font-weight: bold;
+}
+
+.puntuacion {
+  width: 100%;
+  justify-content: space-between;
+  padding: 10px 15px;
+  font-family: Caveat, cursive;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+}
+
+.player-two {
+  color: red;
 }
 
 /*# sourceMappingURL=index.341952ea.css.map */

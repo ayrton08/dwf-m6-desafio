@@ -5,3 +5,14 @@
     color: red;
     
 }
+.waiting-play{
+    padding-top: 100px;
+    font-family: "Caveat", cursive;
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    color: beige;
+}
+.name-jugada{
+    color: blueviolet;
+}
