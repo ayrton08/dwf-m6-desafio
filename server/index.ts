@@ -102,7 +102,7 @@ app.get("/room/:roomId", (req, res) => {
 
 app.post("/jugadas", function (req, res) {
     const { rtdbRoomId, player } = req.body;
-    
+
     if (player == 1) {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
         roomRef.update({
@@ -193,17 +193,23 @@ app.post("/cleanPlay", function (req, res) {
 
 app.post("/rtdbRoomId", function (req, res) {
     const { roomId } = req.body;
-    try {
-        roomsCollection
-            .doc(roomId)
-            .get()
-            .then((doc) => {
-                const docu = doc.data();
-                return res.json(docu);
-            });
-    } catch (error) {
-        return res.status(401).send("El ID de la sala no existe, pruebe otro");
-    }
+
+    roomsCollection
+        .doc(roomId)
+        .get()
+        .then((doc) => {
+            const docu = doc.data();
+            console.log("doc", doc);
+            if (docu === undefined) {
+                console.log("si al if del then");
+                throw new Error();
+            }
+            return res.status(201).json(docu);
+        })
+        .catch((err) => {
+            console.log("si entre al catch");
+            return res.status(401).send("id no encontrado");
+        });
 });
 
 app.post("/history", function (req, res) {
@@ -212,21 +218,16 @@ app.post("/history", function (req, res) {
     if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
 
-        const data = roomRef.update(
-            {
-                player1: req.body.victory,
-            }
-            
-        );
+        const data = roomRef.update({
+            player1: req.body.victory,
+        });
         return res.json("ok");
     }
     if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-        const data = roomRef.update(
-            {
-                player2: req.body.victory,
-            }
-        );
+        const data = roomRef.update({
+            player2: req.body.victory,
+        });
         return res.json("ok");
     }
 });

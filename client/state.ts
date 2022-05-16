@@ -120,8 +120,6 @@ const state = {
             cb();
         }
         localStorage.setItem("state", JSON.stringify(newState));
-        console.log("state", this.data);
-
         return Promise.resolve();
     },
 
@@ -205,19 +203,18 @@ const state = {
             body: JSON.stringify({ roomId: roomId }),
         })
             .then((res) => {
-                console.log(res.status);
-                
-                if(res.status == 200){
-                    return alert("The Room Id doesn't exists")
-                } else {
-                    return res.json();
+                if (res.status == 401) {
+                    throw new Error();
                 }
+                return res.json();
             })
-            .then((data) => {
-                currentState.rtdbRoomId = data.rtdbRoomId;
+            .then((response) => {
+                currentState.rtdbRoomId = response.rtdbRoomId;
                 return state.setState(currentState);
             })
-            
+            .catch((err) => {
+                return { error: err };
+            });
     },
 
     whoWins(player1: Jugada, player2: any) {

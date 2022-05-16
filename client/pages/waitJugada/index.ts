@@ -8,10 +8,10 @@ export function waitJugada(params) {
 
     var name = "";
     if (player === "1") {
-        name = currentState.rtdbData.jugador2.name;
+        name = currentState.rtdbData.jugador2.fullName;
     }
     if (player === "2") {
-        name = currentState.rtdbData.jugador1.name;
+        name = currentState.rtdbData.jugador1.fullName;
     }
 
     div.className = "contenedor";

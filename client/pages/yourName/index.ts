@@ -10,6 +10,7 @@ export function yourName(params) {
         <button-play>
         <div slot="text">Start</div>
         </button-play>
+        <div class="name-empty"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -21,28 +22,41 @@ export function yourName(params) {
 
     const player = localStorage.getItem("player");
     state.setStatus(player, false);
-    
+
     const setHistory = () => {
-        if (state.data.rtdbRoomId && !state.data.historySave && player === "1") {
-            state.data.historySave = true
+        if (
+            state.data.rtdbRoomId &&
+            !state.data.historySave &&
+            player === "1"
+        ) {
+            state.data.historySave = true;
             state.history(0);
         }
     };
-    
+
     sessionStorage.setItem("victorias", "0");
+
     button.addEventListener("click", (event) => {
         const nameValue = document.querySelector("input").value;
+        const nameEmpty = document.querySelector(".name-empty")
+        nameEmpty.textContent = ""
+        if(nameValue === ""){
+            return nameEmpty.textContent = "We need to know your name"
+        }
         state.setFullName(nameValue);
         div.innerHTML = `<counter-room></counter-room>`;
 
         state.setStatus(player, true);
         state.signIn().then(() => {
             if (state.data.roomId) {
-                state.getRtdbRoomId().then(() => {
-                    state.history(0);
-                    state.listenRoom();
-                    return params.goTo("/waitRoom");
-                });
+                state
+                    .getRtdbRoomId()
+                    .then(() => {
+                        state.history(0);
+                        state.listenRoom();
+                        return params.goTo("/waitRoom");
+                    })
+                    
             } else {
                 state.askNewRoom().then(() => {
                     state.subscribe(setHistory);

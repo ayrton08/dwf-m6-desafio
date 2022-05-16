@@ -69,8 +69,6 @@ export function initRouter(container: Element) {
     }
 
     function handleRoute(route) {
-        // console.log("El handleroute recibio una nueva ruta", route);
-
         for (const r of routes) {
             if (r.path.test(route)) {
                 const el = r.component({ goTo: goTo });

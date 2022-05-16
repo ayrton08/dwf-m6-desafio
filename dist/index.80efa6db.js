@@ -629,7 +629,6 @@ function initRouter(container) {
         handleRoute(path);
     }
     function handleRoute(route) {
-        // console.log("El handleroute recibio una nueva ruta", route);
         for (const r of routes)if (r.path.test(route)) {
             const el = r.component({
                 goTo: goTo
@@ -728,6 +727,7 @@ function yourName(params) {
         <button-play>
         <div slot="text">Start</div>
         </button-play>
+        <div class="name-empty"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -746,6 +746,9 @@ function yourName(params) {
     sessionStorage.setItem("victorias", "0");
     button.addEventListener("click", (event)=>{
         const nameValue = document.querySelector("input").value;
+        const nameEmpty = document.querySelector(".name-empty");
+        nameEmpty.textContent = "";
+        if (nameValue === "") return nameEmpty.textContent = "We need to know your name";
         _state.state.setFullName(nameValue);
         div.innerHTML = `<counter-room></counter-room>`;
         _state.state.setStatus(player, true);
@@ -858,7 +861,6 @@ const state = {
         this.data = newState;
         for (const cb of this.listeners)cb();
         localStorage.setItem("state", JSON.stringify(newState));
-        console.log("state", this.data);
         return Promise.resolve();
     },
     subscribe (callback) {
@@ -930,12 +932,15 @@ const state = {
                 roomId: roomId
             })
         }).then((res)=>{
-            console.log(res.status);
-            if (res.status == 200) return alert("The Room Id doesn't exists");
-            else return res.json();
-        }).then((data)=>{
-            currentState.rtdbRoomId = data.rtdbRoomId;
+            if (res.status == 401) throw new Error();
+            return res.json();
+        }).then((response)=>{
+            currentState.rtdbRoomId = response.rtdbRoomId;
             return state.setState(currentState);
+        }).catch((err)=>{
+            return {
+                error: err
+            };
         });
     },
     whoWins (player1, player2) {
@@ -15723,6 +15728,7 @@ function yourCodeRoom(params) {
         <title-text></title-text>
         <button-room></button-room>
         <input class="name" placeholder="code room"> </input>
+        <div class="error"></div>
         <div class="container">
         <piedra-comp></piedra-comp>
         <papel-comp></papel-comp>
@@ -15733,12 +15739,20 @@ function yourCodeRoom(params) {
     button.addEventListener("click", (event)=>{
         event.preventDefault();
         const codeValue = document.querySelector("input").value;
+        const errorMessage = document.querySelector(".error");
+        errorMessage.textContent = "";
         const currentState = _state.state.getState();
         currentState.roomId = codeValue;
         _state.state.setState(currentState).then(()=>{
-            _state.state.getRtdbRoomId();
-            _state.state.listenRoom();
-            return params.goTo("/yourName");
+            _state.state.getRtdbRoomId().then((data)=>{
+                if (data?.error) throw new Error();
+                return Promise.resolve();
+            }).then(()=>{
+                _state.state.listenRoom();
+                return params.goTo("/yourName");
+            }).catch(()=>{
+                errorMessage.textContent = "The Room Id is not valid";
+            });
         });
     });
     return div;
@@ -15952,8 +15966,8 @@ function waitRoom(params) {
     const currentState = _state.state.getState();
     setTimeout(()=>{
         if (_state.state.data.firstRound) {
-            const player1 = currentState.rtdbData.jugador1.fullName;
-            const player2 = currentState.rtdbData.jugador2.fullName;
+            const player1 = currentState.rtdbData.jugador1.name;
+            const player2 = currentState.rtdbData.jugador2.name;
             const history1 = currentState.rtdbData.history.player1;
             const history2 = currentState.rtdbData.history.player2;
             div.innerHTML = `
@@ -16011,8 +16025,8 @@ function waitPlayer(params) {
     div.className = "contenedor";
     const currentState = _state.state.getState();
     if (_state.state.data.firstRound) {
-        const player1 = currentState.rtdbData.jugador1.fullName;
-        const player2 = currentState.rtdbData.jugador2.fullName;
+        const player1 = currentState.rtdbData.jugador1.name;
+        const player2 = currentState.rtdbData.jugador2.name;
         const history1 = currentState.rtdbData.history.player1;
         const history2 = currentState.rtdbData.history.player2;
         const player = localStorage.getItem("player");
@@ -16084,8 +16098,8 @@ function waitJugada(params) {
     const player = localStorage.getItem("player");
     const currentState = _state.state.getState();
     var name = "";
-    if (player === "1") name = currentState.rtdbData.jugador2.name;
-    if (player === "2") name = currentState.rtdbData.jugador1.name;
+    if (player === "1") name = currentState.rtdbData.jugador2.fullName;
+    if (player === "2") name = currentState.rtdbData.jugador1.fullName;
     div.className = "contenedor";
     div.innerHTML = `
         <div class="waiting-play">Esperando a que tu <span class="name-jugada">${name}</span> Juegue!... </div>

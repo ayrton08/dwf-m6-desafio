@@ -74,4 +74,10 @@ body {
   font-size: 40px;
 }
 
+.name-empty, .error {
+  color: red;
+  font-family: Caveat, cursive;
+  font-size: 25px;
+}
+
 /*# sourceMappingURL=index.28a80292.css.map */

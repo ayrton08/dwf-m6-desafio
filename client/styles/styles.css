@@ -80,3 +80,14 @@ body {
 .compartir-code {
     font-size: 40px;
 }
+
+.name-empty {
+    font-size: 25px;
+    color: red;
+    font-family: 'Caveat', cursive;
+}
+.error {
+    font-size: 25px;
+    color: red;
+    font-family: 'Caveat', cursive;
+}

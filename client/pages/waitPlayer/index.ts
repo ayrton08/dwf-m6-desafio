@@ -8,8 +8,8 @@ export function waitPlayer(params) {
     const currentState = state.getState();
 
     if (state.data.firstRound) {
-        const player1 = currentState.rtdbData.jugador1.fullName;
-        const player2 = currentState.rtdbData.jugador2.fullName;
+        const player1 = currentState.rtdbData.jugador1.name;
+        const player2 = currentState.rtdbData.jugador2.name;
 
         const history1 = currentState.rtdbData.history.player1;
         const history2 = currentState.rtdbData.history.player2;
