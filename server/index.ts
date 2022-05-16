@@ -7,6 +7,7 @@ import { state } from "../client/state";
 const PORT = 3000;
 
 const app = express();
+app.use(express.static("dist"))
 app.use(cors());
 app.use(express.json());
 

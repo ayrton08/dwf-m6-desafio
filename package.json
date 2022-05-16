@@ -1,23 +1,24 @@
 {
-  "name": "dwf-m6-desafio",
-  "version": "1.0.0",
-  "repository": "https://github.com/ayrton08/dwf-m6-desafio.git",
-  "author": "ayrton juarez <ayrtonjuarez90@gmail.com>",
-  "license": "MIT",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.0",
-    "firebase": "^9.7.0",
-    "firebase-admin": "^10.1.0",
-    "nanoid": "^3.3.3",
-    "parcel": "^2.5.0",
-    "typescript": "^4.6.3"
-  },
-  "scripts": {
-    "devfront": "parcel serve ./client/index.html",
-    "devback": "nodemon ./server/index.ts"
-  },
-  "devDependencies": {
-    "process": "^0.11.10"
-  }
+    "name": "dwf-m6-desafio",
+    "version": "1.0.0",
+    "repository": "https://github.com/ayrton08/dwf-m6-desafio.git",
+    "author": "ayrton juarez <ayrtonjuarez90@gmail.com>",
+    "license": "MIT",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.18.0",
+        "firebase": "^9.7.0",
+        "firebase-admin": "^10.1.0",
+        "nanoid": "^3.3.3",
+        "parcel": "^2.5.0",
+        "typescript": "^4.6.3"
+    },
+    "scripts": {
+        "dev:front": "parcel serve ./client/index.html",
+        "dev:back": "nodemon ./server/index.ts",
+        "build:front": "build ./client/index.html"
+    },
+    "devDependencies": {
+        "process": "^0.11.10"
+    }
 }
