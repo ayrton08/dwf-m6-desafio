@@ -198,15 +198,12 @@ app.post("/rtdbRoomId", function (req, res) {
         .get()
         .then((doc) => {
             const docu = doc.data();
-            console.log("doc", doc);
             if (docu === undefined) {
-                console.log("si al if del then");
                 throw new Error();
             }
             return res.status(201).json(docu);
         })
         .catch((err) => {
-            console.log("si entre al catch");
             return res.status(401).send("id no encontrado");
         });
 });
