@@ -870,7 +870,7 @@ const state = {
         const currentState = this.getState();
         const { rtdbRoomId  } = currentState;
         if (!rtdbRoomId) return Promise.resolve();
-        return fetch(API_BASE_URL + "/jugadas", {
+        return fetch(API_BASE_URL + "/status", {
             method: "post",
             headers: {
                 "Content-Type": "application/json"

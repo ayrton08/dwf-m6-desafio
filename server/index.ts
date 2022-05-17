@@ -99,7 +99,7 @@ app.get("/room/:roomId", (req, res) => {
         });
 });
 
-app.post("/jugadas", function (req, res) {
+app.post("/status", function (req, res) {
     const { rtdbRoomId, player } = req.body;
 
     if (player == 1) {
