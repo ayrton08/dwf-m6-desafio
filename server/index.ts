@@ -4,7 +4,7 @@ import * as express from "express";
 import * as cors from "cors";
 import { nanoid } from "nanoid";
 import { state } from "../client/state";
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const app = express();
 app.use(express.static("dist"))
