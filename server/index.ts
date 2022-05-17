@@ -2,6 +2,7 @@ import { firestore, rtdb } from "./db";
 import * as express from "express";
 import * as cors from "cors";
 import { nanoid } from "nanoid";
+import * as path from "path"
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -231,6 +232,7 @@ app.post("/history", function (req, res) {
 });
 
 app.use(express.static("dist"));
+
 app.get("*", (req, res) => {
-    res.sendFile(__dirname + "./dist/index.html");
+    res.sendFile(path.join(__dirname, "../dist/index.html"));
 });

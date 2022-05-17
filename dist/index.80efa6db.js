@@ -775,7 +775,7 @@ parcelHelpers.export(exports, "state", ()=>state
 );
 var _database = require("firebase/database");
 var _rtdb = require("../server/rtdb");
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://apx-m6.herokuapp.com";
 const state = {
     data: {
         fullName: "",

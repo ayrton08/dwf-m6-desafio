@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://apx-m6.herokuapp.com";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import { rtdb } from "../server/rtdb";
 import map from "lodash/map";
