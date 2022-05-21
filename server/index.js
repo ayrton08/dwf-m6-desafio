@@ -4,6 +4,7 @@ var db_1 = require("./db");
 var express = require("express");
 var cors = require("cors");
 var nanoid_1 = require("nanoid");
+var path = require("path");
 var PORT = process.env.PORT || 3000;
 var app = express();
 app.use(cors());
@@ -95,7 +96,7 @@ app.get("/room/:roomId", function (req, res) {
         }
     });
 });
-app.post("/jugadas", function (req, res) {
+app.post("/status", function (req, res) {
     var _a = req.body, rtdbRoomId = _a.rtdbRoomId, player = _a.player;
     if (player == 1) {
         var roomRef = db_1.rtdb.ref("/rooms/".concat(rtdbRoomId, "/jugador1"));
@@ -171,14 +172,11 @@ app.post("/rtdbRoomId", function (req, res) {
         .get()
         .then(function (doc) {
         var docu = doc.data();
-        console.log("doc", doc);
         if (docu === undefined) {
-            console.log("si al if del then");
             throw new Error();
         }
         return res.status(201).json(docu);
     })["catch"](function (err) {
-        console.log("si entre al catch");
         return res.status(401).send("id no encontrado");
     });
 });
@@ -201,5 +199,5 @@ app.post("/history", function (req, res) {
 });
 app.use(express.static("dist"));
 app.get("*", function (req, res) {
-    res.sendFile(__dirname + "./dist/index.html");
+    res.sendFile(path.join(__dirname, "../dist/index.html"));
 });

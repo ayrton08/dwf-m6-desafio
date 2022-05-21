@@ -773,10 +773,10 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "state", ()=>state
 );
+// const API_BASE_URL = "https://localhost:3000";
 var _database = require("firebase/database");
 var _rtdb = require("../server/rtdb");
-// const API_BASE_URL = "https://apx-m6.herokuapp.com";
-const API_BASE_URL = "https://localhost:3000";
+const API_BASE_URL = "https://apx-m6.herokuapp.com";
 const state = {
     data: {
         fullName: "",
@@ -883,11 +883,6 @@ const state = {
                 name: currentState.fullName,
                 rtdbRoomId
             })
-        }).then((res)=>{
-            return res.json();
-        }).then((data)=>{
-            currentState.rtdbData = data;
-            return this.setState(currentState);
         });
     },
     setPlay (params) {

@@ -144,14 +144,8 @@ const state = {
                 name: currentState.fullName,
                 rtdbRoomId,
             }),
-        })
-            .then((res) => {
-                return res.json();
-            })
-            .then((data) => {
-                currentState.rtdbData = data;
-                return this.setState(currentState);
-            });
+        });
+       
     },
 
     setPlay(params: { choise: string; name: string; player: number }) {
