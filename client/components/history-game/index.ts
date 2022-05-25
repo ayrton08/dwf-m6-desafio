@@ -1,33 +1,27 @@
 import { state } from "../../state";
 
 export function historyComp() {
-    class History extends HTMLElement {
-        constructor() {
-            super();
-        }
+  class History extends HTMLElement {
+    constructor() {
+      super();
+    }
 
-        connectedCallback() {
-            this.render();
-        }
+    connectedCallback() {
+      this.render();
+    }
 
-        render() {
-            this.attachShadow({ mode: "open" });
-            const div = document.createElement("div");
+    render() {
+      this.attachShadow({ mode: "open" });
+      const div = document.createElement("div");
+      state.listenRoom();
+      const data = state.getState();
+      const player2 = data.rtdbData.history?.player2;
 
-            state.listenRoom();
+      const nameOne = data.rtdbData.jugador1.name;
+      const nameTwo = data.rtdbData.jugador2.name;
 
-            const data = state.getState();
-            
-            let {history:{player1}} = data.rtdbData;
-
-            const player2 = data.rtdbData.history?.player2;
-            
-           
-                const nameOne = data.rtdbData.jugador1.name;
-                const nameTwo = data.rtdbData.jugador2.name;
-    
-                div.className = "container";
-                div.innerHTML = `
+      div.className = "container";
+      div.innerHTML = `
                     <div>Score</div>
                     <div class="content">
                     <span>${nameOne}: ${data.rtdbData.history?.player1}</span>
@@ -35,19 +29,18 @@ export function historyComp() {
                     </div>
                     ${this.getStyle()}
                 `;
-                this.shadowRoot.appendChild(div);
-            
-        }
+      this.shadowRoot.appendChild(div);
+    }
 
-        getStyle() {
-            return `
+    getStyle() {
+      return `
             <style>
                 .container {
                 margin: 0;
                 color: #000000;
                 font-family: 'Odibee Sans', cursive;
                 font-size: 55px;
-                font-weight: bold; 
+                font-weight: bold;
                 text-align: center;
                 display: flex;
                 flex-direction: column;
@@ -69,7 +62,7 @@ export function historyComp() {
             }
             </style>
             `;
-        }
     }
-    customElements.define("history-comp", History);
+  }
+  customElements.define("history-comp", History);
 }

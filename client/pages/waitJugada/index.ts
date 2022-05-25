@@ -2,20 +2,20 @@ import { createModuleResolutionCache } from "typescript";
 import { state } from "../../state";
 
 export function waitJugada(params) {
-    const div = document.createElement("div");
-    const player = localStorage.getItem("player");
-    const currentState = state.getState();
+  const div = document.createElement("div");
+  const player = history.state.player;
+  const currentState = state.getState();
 
-    var name = "";
-    if (player === "1") {
-        name = currentState.rtdbData.jugador2.fullName;
-    }
-    if (player === "2") {
-        name = currentState.rtdbData.jugador1.fullName;
-    }
+  var name = "";
+  if (player === "1") {
+    name = currentState.rtdbData.jugador2.fullName;
+  }
+  if (player === "2") {
+    name = currentState.rtdbData.jugador1.fullName;
+  }
 
-    div.className = "contenedor";
-    div.innerHTML = `
+  div.className = "contenedor";
+  div.innerHTML = `
         <div class="waiting-play">Esperando a que tu <span class="name-jugada">${name}</span> Juegue!... </div>
         <div class="container">
         <piedra-comp></piedra-comp>
@@ -24,26 +24,25 @@ export function waitJugada(params) {
         </div>
     `;
 
-    const viewPlay = () => {
-        if (
-            currentState.rtdbData.jugador1?.choise &&
-            currentState.rtdbData.jugador2?.choise &&
-            location.pathname.includes("waitJugada")
-        ) {
-            const choise = {
-                jugador1: currentState.rtdbData.jugador1.choise,
-                jugador2: currentState.rtdbData.jugador2.choise,
-            };
-            currentState.rtdbData.jugador1.choise = null;
-            currentState.rtdbData.jugador2.choise = null;
-            // currentState.playerOneWaiting = true;
-            state.setState(currentState);
+  const viewPlay = () => {
+    if (
+      currentState.rtdbData.jugador1?.choise &&
+      currentState.rtdbData.jugador2?.choise &&
+      location.pathname.includes("waitJugada")
+    ) {
+      const choise = {
+        jugador1: currentState.rtdbData.jugador1.choise,
+        jugador2: currentState.rtdbData.jugador2.choise,
+      };
+      currentState.rtdbData.jugador1.choise = null;
+      currentState.rtdbData.jugador2.choise = null;
+      state.setState(currentState);
 
-            return params.goTo("/result/jugada", { choise });
-        }
-    };
+      return params.goTo("/result/jugada", { choise, player });
+    }
+  };
 
-    state.subscribe(viewPlay);
+  state.subscribe(viewPlay);
 
-    return div;
+  return div;
 }

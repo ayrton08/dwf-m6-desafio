@@ -6,6 +6,7 @@ import * as path from "path"
 const PORT = process.env.PORT || 3000;
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -158,7 +159,7 @@ app.post("/play", function (req, res) {
 app.post("/cleanPlay", function (req, res) {
     const { rtdbRoomId, player } = req.body;
 
-    if (player === 1) {
+    if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador1`);
 
         const data = roomRef.set(
@@ -173,7 +174,7 @@ app.post("/cleanPlay", function (req, res) {
         );
         return res.json("ok");
     }
-    if (player === 2) {
+    if (player === "2") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/jugador2`);
 
         const data = roomRef.set(

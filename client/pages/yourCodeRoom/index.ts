@@ -1,9 +1,9 @@
 import { state } from "../../state";
 
 export function yourCodeRoom(params) {
-    const div = document.createElement("div");
-    div.className = "contenedor";
-    div.innerHTML = `
+  const div = document.createElement("div");
+  div.className = "contenedor";
+  div.innerHTML = `
         <title-text></title-text>
         <button-room></button-room>
         <input class="name" placeholder="code room"> </input>
@@ -14,39 +14,35 @@ export function yourCodeRoom(params) {
         <tijera-comp></tijera-comp>
         </div>
     `;
-    
-    const button = div.querySelector("button-room");
-    button.addEventListener("click", (event) => {
-        event.preventDefault();
-        const codeValue = document.querySelector("input").value;
-        const errorMessage = document.querySelector(".error")
-        errorMessage.textContent = ""
+  const player = history.state.player;
+  const button = div.querySelector("button-room");
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const codeValue = document.querySelector("input").value;
+    const errorMessage = document.querySelector(".error");
+    errorMessage.textContent = "";
 
+    const currentState = state.getState();
+    currentState.roomId = codeValue;
 
-        const currentState = state.getState();
-        currentState.roomId = codeValue;
-
-        state.setState(currentState).then(() => {
-            state
-                .getRtdbRoomId()
-                .then((data) => {
-                    
-                    if (data?.error) {
-                        throw new Error();
-                    }
-                    return Promise.resolve()
-                    
-                })
-                .then(() => {
-                    state.listenRoom();
-                    return params.goTo("/yourName");
-                })
-                .catch(() => {
-                    errorMessage.textContent = "The Room Id is not valid" 
-                    
-                });
+    state.setState(currentState).then(() => {
+      state
+        .getRtdbRoomId()
+        .then((data) => {
+          if (data?.error) {
+            throw new Error();
+          }
+          return Promise.resolve();
+        })
+        .then(() => {
+          state.listenRoom();
+          return params.goTo("/yourName", { player });
+        })
+        .catch(() => {
+          errorMessage.textContent = "The Room Id is not valid";
         });
     });
+  });
 
-    return div;
+  return div;
 }

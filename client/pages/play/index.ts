@@ -2,9 +2,9 @@ import { state } from "../../state";
 import { jugada } from "../jugada";
 
 export function play(params) {
-    const div = document.createElement("div");
-    div.className = "container-play";
-    div.innerHTML = `
+  const div = document.createElement("div");
+  div.className = "container-play";
+  div.innerHTML = `
 
     <counter-comp></counter-comp>
     <div class="jugadas">
@@ -13,78 +13,75 @@ export function play(params) {
     <tijera-comp></tijera-comp>
     </div>
     `;
-    const player = localStorage.getItem("player");
-    
-    const piedra = div.querySelector("piedra-comp");
-    const papel = div.querySelector("papel-comp");
-    const tijera = div.querySelector("tijera-comp");
+  const player = history.state.player;
 
+  const piedra = div.querySelector("piedra-comp");
+  const papel = div.querySelector("papel-comp");
+  const tijera = div.querySelector("tijera-comp");
 
-    const goToAwaitJugada = () => {
-        const jugador = `jugador${player}`;
-        if (
-            state.data.rtdbData[jugador].choise &&
-            location.pathname.includes("play")
-        ) {
-            return params.goTo("/waitJugada");
-        }
-    };
+  const goToAwaitJugada = () => {
+    const jugador = `jugador${player}`;
+    if (
+      state.data.rtdbData[jugador].choise &&
+      location.pathname.includes("play")
+    ) {
+      return params.goTo("/waitJugada", { player });
+    }
+  };
 
-    const name = state.data.fullName;
+  const name =
+    player === "1" ? state.data.playerOneName : state.data.playerTwoName;
 
-    piedra.addEventListener("click", () => {
-        papel.style.opacity = "0.4";
-        tijera.style.opacity = "0.4";
+  piedra.addEventListener("click", () => {
+    papel.style.opacity = "0.4";
+    tijera.style.opacity = "0.4";
+    state.subscribe(goToAwaitJugada);
+
+    state
+      .setPlay({
+        choise: "piedra",
+        name: name,
+        player: Number(player),
+      })
+      .then(() => {
         state.subscribe(goToAwaitJugada);
 
-        state
-            .setPlay({
-                choise: "piedra",
-                name: name,
-                player: Number(player),
-            })
-            .then(() => {
-                state.subscribe(goToAwaitJugada);
+        return state.listenRoom();
+      });
+  });
 
-                return state.listenRoom();
-            });
-    });
+  papel.addEventListener("click", () => {
+    state.subscribe(goToAwaitJugada);
 
-    papel.addEventListener("click", () => {
-        state.subscribe(goToAwaitJugada);
-        
-        piedra.style.opacity = "0.4";
-        tijera.style.opacity = "0.4";
+    piedra.style.opacity = "0.4";
+    tijera.style.opacity = "0.4";
 
-        state
-            .setPlay({
-                choise: "papel",
-                name: name,
-                player: Number(player),
-            })
-            .then(() => {
-                
-                return state.listenRoom();
-            });
-    });
+    state
+      .setPlay({
+        choise: "papel",
+        name: name,
+        player: Number(player),
+      })
+      .then(() => {
+        return state.listenRoom();
+      });
+  });
 
-    tijera.addEventListener("click", () => {
+  tijera.addEventListener("click", () => {
+    papel.style.opacity = "0.4";
+    piedra.style.opacity = "0.4";
 
-        papel.style.opacity = "0.4";
-        piedra.style.opacity = "0.4";
+    state.subscribe(goToAwaitJugada);
+    state
+      .setPlay({
+        choise: "tijera",
+        name: name,
+        player: Number(player),
+      })
+      .then(() => {
+        return state.listenRoom();
+      });
+  });
 
-        state.subscribe(goToAwaitJugada);
-        state
-            .setPlay({
-                choise: "tijera",
-                name: name,
-                player: Number(player),
-            })
-            .then(() => {
-
-                return state.listenRoom();
-            });
-    });
-
-    return div;
+  return div;
 }

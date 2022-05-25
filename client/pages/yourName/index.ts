@@ -2,9 +2,9 @@ import { state } from "../../state";
 import { counterComp } from "../../components/counter";
 
 export function yourName(params) {
-    const div = document.createElement("div");
-    div.className = "contenedor";
-    div.innerHTML = `
+  const div = document.createElement("div");
+  div.className = "contenedor";
+  div.innerHTML = `
         <title-text></title-text>
         <input class="name" type="text" placeholder="Your Name"></input>
         <button-play>
@@ -18,54 +18,48 @@ export function yourName(params) {
         </div>
     `;
 
-    const button = div.querySelector("button-play");
+  const button = div.querySelector("button-play");
 
-    const player = localStorage.getItem("player");
-    state.setStatus(player, false);
+  const player = history.state.player;
 
-    const setHistory = () => {
-        if (
-            state.data.rtdbRoomId &&
-            !state.data.historySave &&
-            player === "1"
-        ) {
-            state.data.historySave = true;
-            state.history(0);
-        }
-    };
+  state.setStatus(player, false);
 
-    sessionStorage.setItem("victorias", "0");
+  const setHistory = () => {
+    if (state.data.rtdbRoomId && !state.data.historySave && player === "1") {
+      state.data.historySave = true;
+      state.history(0, player);
+    }
+  };
 
-    button.addEventListener("click", (event) => {
-        const nameValue = document.querySelector("input").value;
-        const nameEmpty = document.querySelector(".name-empty")
-        nameEmpty.textContent = ""
-        if(nameValue === ""){
-            return nameEmpty.textContent = "We need to know your name"
-        }
-        state.setFullName(nameValue);
-        div.innerHTML = `<counter-room></counter-room>`;
+  sessionStorage.setItem("victorias", "0");
 
-        state.setStatus(player, true);
-        state.signIn().then(() => {
-            if (state.data.roomId) {
-                state
-                    .getRtdbRoomId()
-                    .then(() => {
-                        state.history(0);
-                        state.listenRoom();
-                        return params.goTo("/waitRoom");
-                    })
-                    
-            } else {
-                state.askNewRoom().then(() => {
-                    state.subscribe(setHistory);
-                    state.listenRoom();
-                    return params.goTo("/codeRoom");
-                });
-            }
+  button.addEventListener("click", (event) => {
+    const nameValue = document.querySelector("input").value;
+    const nameEmpty = document.querySelector(".name-empty");
+    nameEmpty.textContent = "";
+    if (nameValue === "") {
+      return (nameEmpty.textContent = "We need to know your name");
+    }
+    state.setFullName(player, nameValue);
+    div.innerHTML = `<counter-room></counter-room>`;
+
+    state.setStatus(player, true);
+    state.signIn(player).then(() => {
+      if (state.data.roomId) {
+        state.getRtdbRoomId().then(() => {
+          state.history(0, player);
+          state.listenRoom();
+          return params.goTo("/waitRoom", { player });
         });
+      } else {
+        state.askNewRoom().then(() => {
+          state.subscribe(setHistory);
+          state.listenRoom();
+          return params.goTo("/codeRoom", { player });
+        });
+      }
     });
+  });
 
-    return div;
+  return div;
 }

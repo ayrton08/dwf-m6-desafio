@@ -667,18 +667,19 @@ function welcomePage(params) {
     const buttonRoom = div.querySelector("button-room");
     buttonNewGame.addEventListener("click", (event)=>{
         event.preventDefault();
-        localStorage.setItem("player", "1");
-        params.goTo("/yourName");
+        return params.goTo("/yourName", {
+            player: "1"
+        });
     });
     const handlerButtonRoom = (event)=>{
         event.preventDefault();
-        localStorage.setItem("player", "2");
-        params.goTo("/yourCodeRoom");
+        return params.goTo("/yourCodeRoom", {
+            player: "2"
+        });
     };
-    buttonRoom.addEventListener("click", handlerButtonRoom);
-    // window.onload = () => {
-    //     buttonRoom.removeEventListener("click", handlerButtonRoom);
-    // };
+    buttonRoom.addEventListener("click", handlerButtonRoom, {
+        once: true
+    });
     return div;
 }
 
@@ -735,12 +736,12 @@ function yourName(params) {
         </div>
     `;
     const button = div.querySelector("button-play");
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     _state.state.setStatus(player, false);
     const setHistory = ()=>{
         if (_state.state.data.rtdbRoomId && !_state.state.data.historySave && player === "1") {
             _state.state.data.historySave = true;
-            _state.state.history(0);
+            _state.state.history(0, player);
         }
     };
     sessionStorage.setItem("victorias", "0");
@@ -749,19 +750,23 @@ function yourName(params) {
         const nameEmpty = document.querySelector(".name-empty");
         nameEmpty.textContent = "";
         if (nameValue === "") return nameEmpty.textContent = "We need to know your name";
-        _state.state.setFullName(nameValue);
+        _state.state.setFullName(player, nameValue);
         div.innerHTML = `<counter-room></counter-room>`;
         _state.state.setStatus(player, true);
-        _state.state.signIn().then(()=>{
+        _state.state.signIn(player).then(()=>{
             if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
-                _state.state.history(0);
+                _state.state.history(0, player);
                 _state.state.listenRoom();
-                return params.goTo("/waitRoom");
+                return params.goTo("/waitRoom", {
+                    player
+                });
             });
             else _state.state.askNewRoom().then(()=>{
                 _state.state.subscribe(setHistory);
                 _state.state.listenRoom();
-                return params.goTo("/codeRoom");
+                return params.goTo("/codeRoom", {
+                    player
+                });
             });
         });
     });
@@ -773,13 +778,14 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "state", ()=>state
 );
-// const API_BASE_URL = "https://localhost:3000";
 var _database = require("firebase/database");
 var _rtdb = require("../server/rtdb");
-const API_BASE_URL = "https://apx-m6.herokuapp.com";
+// const API_BASE_URL = "https://apx-m6.herokuapp.com";
+const API_BASE_URL = "http://localhost:3000";
 const state = {
     data: {
-        fullName: "",
+        playerOneName: "",
+        playerTwoName: "",
         userId: "",
         rtdbRoomId: "",
         roomId: "",
@@ -804,20 +810,25 @@ const state = {
     getState () {
         return this.data;
     },
-    setFullName (fullName) {
+    setFullName (player, fullName) {
         const currentState = this.getState();
-        currentState.fullName = fullName;
+        if (player === "1") {
+            currentState.playerOneName = fullName;
+            return this.setState(currentState);
+        }
+        currentState.playerTwoName = fullName;
         return this.setState(currentState);
     },
-    signIn (callback) {
+    signIn (player, callback) {
         const currentState = this.getState();
-        if (currentState.fullName) return fetch(API_BASE_URL + "/signup", {
+        const fullName = player === "1" ? currentState.playerOneName : currentState.playerTwoName;
+        if (fullName) return fetch(API_BASE_URL + "/signup", {
             method: "post",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                name: currentState.fullName
+                name: fullName
             })
         }).then((res)=>{
             return res.json();
@@ -880,7 +891,7 @@ const state = {
                 status: true,
                 online,
                 player,
-                name: currentState.fullName,
+                name: player === "1" ? currentState.playerOneName : currentState.playerTwoName,
                 rtdbRoomId
             })
         });
@@ -951,9 +962,8 @@ const state = {
         sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
         return Number(value) + 1;
     },
-    history (victory) {
+    history (victory, player) {
         const rtdbRoomId = this.getState().rtdbRoomId;
-        const player = localStorage.getItem("player");
         return fetch(API_BASE_URL + "/history", {
             method: "post",
             headers: {
@@ -15629,12 +15639,14 @@ function codeRoom(params) {
         </div>
     `;
     const codigo = JSON.parse(localStorage.getItem("state"));
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     const codeRoom1 = div.querySelector(".code");
     codigo.roomId && (codeRoom1.innerHTML = `Share the code: <span class="number">${codigo.roomId}</span> with your opponent`);
     const goToRoom = ()=>{
         const data = _state.state.getState();
-        if (data.rtdbData?.jugador2?.online == true && location.pathname.includes("codeRoom")) return params.goTo("/waitRoom");
+        if (data.rtdbData?.jugador2?.online == true && location.pathname.includes("codeRoom")) return params.goTo("/waitRoom", {
+            player
+        });
     };
     _state.state.history(0);
     _state.state.accessToRoom().then(()=>{
@@ -15662,15 +15674,17 @@ function play(params) {
     <tijera-comp></tijera-comp>
     </div>
     `;
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     const piedra = div.querySelector("piedra-comp");
     const papel = div.querySelector("papel-comp");
     const tijera = div.querySelector("tijera-comp");
     const goToAwaitJugada = ()=>{
         const jugador = `jugador${player}`;
-        if (_state.state.data.rtdbData[jugador].choise && location.pathname.includes("play")) return params.goTo("/waitJugada");
+        if (_state.state.data.rtdbData[jugador].choise && location.pathname.includes("play")) return params.goTo("/waitJugada", {
+            player
+        });
     };
-    const name = _state.state.data.fullName;
+    const name = player === "1" ? _state.state.data.playerOneName : _state.state.data.playerTwoName;
     piedra.addEventListener("click", ()=>{
         papel.style.opacity = "0.4";
         tijera.style.opacity = "0.4";
@@ -15731,6 +15745,7 @@ function yourCodeRoom(params) {
         <tijera-comp></tijera-comp>
         </div>
     `;
+    const player = history.state.player;
     const button = div.querySelector("button-room");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
@@ -15745,7 +15760,9 @@ function yourCodeRoom(params) {
                 return Promise.resolve();
             }).then(()=>{
                 _state.state.listenRoom();
-                return params.goTo("/yourName");
+                return params.goTo("/yourName", {
+                    player
+                });
             }).catch(()=>{
                 errorMessage.textContent = "The Room Id is not valid";
             });
@@ -15767,8 +15784,8 @@ function ganaste(params) {
     div.innerHTML = `
         <span class="congratulation">¡Congratulations 😎!</span>
     `;
-    const player = Number(localStorage.getItem("player"));
-    const name = _state.state.data.fullName;
+    const player = history.state.player;
+    const name = player === "1" ? _state.state.data.playerOneName : _state.state.data.playerTwoName;
     _state.state.cleanPlay({
         name: name,
         status: false,
@@ -15780,12 +15797,14 @@ function ganaste(params) {
         <img src="${image}">
         <history-comp></history-comp>
         <button-playagain></button-playagain>
-        
+
         `;
         const button = div.querySelector("button-playagain");
         button.addEventListener("click", (event)=>{
             event.preventDefault();
-            return params.goTo("/waitRoom");
+            return params.goTo("/waitRoom", {
+                player
+            });
         });
     }, 1500);
     return div;
@@ -15841,8 +15860,8 @@ function perdiste(params) {
     div.innerHTML = `
         <span class="loser">¡Don't give up 😭!</span>
     `;
-    const player = Number(localStorage.getItem("player"));
-    const name = _state.state.data.fullName;
+    const player = history.state.player;
+    const name = player === "1" ? _state.state.data.playerOneName : _state.state.data.playerTwoName;
     _state.state.cleanPlay({
         name: name,
         status: false,
@@ -15854,12 +15873,14 @@ function perdiste(params) {
             <img src="${image}">
             <history-comp></history-comp>
             <button-playagain></button-playagain>
-    
+
             `;
         const button = div.querySelector("button-playagain");
         button.addEventListener("click", (event)=>{
             event.preventDefault();
-            return params.goTo("/waitRoom");
+            return params.goTo("/waitRoom", {
+                player
+            });
         });
     }, 1500);
     return div;
@@ -15882,10 +15903,10 @@ function empate(params) {
     div.innerHTML = `
         <img class="giphy" src="${giphy}" alt="">
         <button-playagain></button-playagain>
-    
+
         `;
-    const player = Number(localStorage.getItem("player"));
-    const name = _state.state.data.fullName;
+    const player = history.state.player;
+    const name = player === "1" ? _state.state.data.playerOneName : _state.state.data.playerTwoName;
     _state.state.cleanPlay({
         name: name,
         status: false,
@@ -15895,7 +15916,9 @@ function empate(params) {
     const button = div.querySelector("button-playagain");
     button.addEventListener("click", (event)=>{
         event.preventDefault();
-        return params.goTo("/waitRoom");
+        return params.goTo("/waitRoom", {
+            player
+        });
     });
     return div;
 }
@@ -15919,7 +15942,7 @@ function jugada(params) {
     };
     const jugador1 = history.state.choise.jugador1;
     const jugador2 = history.state.choise.jugador2;
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     if (player === "1") div.innerHTML = `
             ${jugada1[jugador2]}
             ${jugada1[jugador1]}
@@ -15934,16 +15957,26 @@ function jugada(params) {
     setTimeout(()=>{
         if (resultado === "gane" && player === "1") {
             const numberOfVictories = _state.state.win();
-            _state.state.history(numberOfVictories);
-            return params.goTo("/result/ganaste");
+            _state.state.history(numberOfVictories, player);
+            return params.goTo("/result/ganaste", {
+                player
+            });
         }
-        if (resultado === "gane" && player === "2") return params.goTo("/result/perdiste");
-        if (resultado === "empate") return params.goTo("/result/empate");
-        if (resultado === "perdi" && player === "1") return params.goTo("/result/perdiste");
+        if (resultado === "gane" && player === "2") return params.goTo("/result/perdiste", {
+            player
+        });
+        if (resultado === "empate") return params.goTo("/result/empate", {
+            player
+        });
+        if (resultado === "perdi" && player === "1") return params.goTo("/result/perdiste", {
+            player
+        });
         if (resultado === "perdi" && player === "2") {
             const numberOfVictories = _state.state.win();
-            _state.state.history(numberOfVictories);
-            return params.goTo("/result/ganaste");
+            _state.state.history(numberOfVictories, player);
+            return params.goTo("/result/ganaste", {
+                player
+            });
         }
     }, 1000);
     return div;
@@ -15972,11 +16005,11 @@ function waitRoom(params) {
                 <div>${player1}: ${history1}</div>
                 <div class="player-two">${player2}: ${history2}</div>
                 </div>
-                
+
                 <div>
                     Room: <span class="room-id">${currentState.roomId}</span></div>
                 </div>
-                </div>    
+                </div>
                 <instructions-comp></instructions-comp>
                 <button-play></button-play>
                 <div class="container">
@@ -15987,7 +16020,7 @@ function waitRoom(params) {
             `;
         } else div.innerHTML = `
                 <div class="puntuacion">
-                </div>    
+                </div>
                 <div class="room-id">
                     <span>Room: <span>${currentState.roomId}</span></span>
                 </div>
@@ -16000,11 +16033,13 @@ function waitRoom(params) {
                 </div>
             `;
     }, 800);
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     _state.state.setStatus(player, false);
     div.addEventListener("click", ()=>{
         _state.state.setStatus(player, true);
-        return params.goTo("/waitPlayer");
+        return params.goTo("/waitPlayer", {
+            player
+        });
     });
     return div;
 }
@@ -16020,23 +16055,23 @@ function waitPlayer(params) {
     const div = document.createElement("div");
     div.className = "contenedor";
     const currentState = _state.state.getState();
+    const player = history.state.player;
     if (_state.state.data.firstRound) {
         const player1 = currentState.rtdbData.jugador1.name;
         const player2 = currentState.rtdbData.jugador2.name;
         const history1 = currentState.rtdbData.history.player1;
         const history2 = currentState.rtdbData.history.player2;
-        const player = localStorage.getItem("player");
         if (player === "1") div.innerHTML = `
             <div class="puntuacion">
             <div>
             <div>${player1}: ${history1}</div>
             <div class="player-two">${player2}: ${history2}</div>
             </div>
-            
+
             <div>
                 Room: <span class="room-id">${currentState.roomId}</span></div>
             </div>
-            </div>    
+            </div>
             <div class="text-wait">Esperando a que tu ${player2} presione ¡Jugar!... </div>
             <div class="container">
             <piedra-comp></piedra-comp>
@@ -16050,11 +16085,11 @@ function waitPlayer(params) {
             <div>${player1}: ${history1}</div>
             <div class="player-two">${player2}: ${history2}</div>
             </div>
-            
+
             <div>
                 Room: <span class="room-id">${currentState.roomId}</span></div>
             </div>
-            </div>    
+            </div>
             <div class="text-wait">Esperando a que tu <span class="name-player-one">${player1}</span> presione ¡Jugar!... </div>
             <div class="container">
             <piedra-comp></piedra-comp>
@@ -16076,7 +16111,9 @@ function waitPlayer(params) {
             data.rtdbData.jugador1.online = false;
             data.rtdbData.jugador2.online = false;
             _state.state.setState(data);
-            return params.goTo("/play");
+            return params.goTo("/play", {
+                player
+            });
         }
     };
     _state.state.subscribe(goToPlay);
@@ -16091,7 +16128,7 @@ parcelHelpers.export(exports, "waitJugada", ()=>waitJugada
 var _state = require("../../state");
 function waitJugada(params) {
     const div = document.createElement("div");
-    const player = localStorage.getItem("player");
+    const player = history.state.player;
     const currentState = _state.state.getState();
     var name = "";
     if (player === "1") name = currentState.rtdbData.jugador2.fullName;
@@ -16113,10 +16150,10 @@ function waitJugada(params) {
             };
             currentState.rtdbData.jugador1.choise = null;
             currentState.rtdbData.jugador2.choise = null;
-            // currentState.playerOneWaiting = true;
             _state.state.setState(currentState);
             return params.goTo("/result/jugada", {
-                choise
+                choise,
+                player
             });
         }
     };
@@ -16798,7 +16835,6 @@ function historyComp() {
             const div = document.createElement("div");
             _state.state.listenRoom();
             const data = _state.state.getState();
-            let { history: { player1  }  } = data.rtdbData;
             const player2 = data.rtdbData.history?.player2;
             const nameOne = data.rtdbData.jugador1.name;
             const nameTwo = data.rtdbData.jugador2.name;
@@ -16821,7 +16857,7 @@ function historyComp() {
                 color: #000000;
                 font-family: 'Odibee Sans', cursive;
                 font-size: 55px;
-                font-weight: bold; 
+                font-weight: bold;
                 text-align: center;
                 display: flex;
                 flex-direction: column;

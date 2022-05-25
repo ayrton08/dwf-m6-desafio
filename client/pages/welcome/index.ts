@@ -1,7 +1,7 @@
 export function welcomePage(params) {
-    const div = document.createElement("div");
-    div.className = "contenedor";
-    div.innerHTML = `
+  const div = document.createElement("div");
+  div.className = "contenedor";
+  div.innerHTML = `
         <title-text></title-text>
         <button-new-game></button-new-game>
         <button-room></button-room>
@@ -12,25 +12,19 @@ export function welcomePage(params) {
         </div>
     `;
 
-    const buttonNewGame = div.querySelector("button-new-game");
-    const buttonRoom = div.querySelector("button-room");
+  const buttonNewGame = div.querySelector("button-new-game");
+  const buttonRoom = div.querySelector("button-room");
 
-    buttonNewGame.addEventListener("click", (event) => {
-        event.preventDefault();
-        localStorage.setItem("player", "1");
-        params.goTo("/yourName");
-    });
-    const handlerButtonRoom = (event) => {
-        event.preventDefault();
-        localStorage.setItem("player", "2");
+  buttonNewGame.addEventListener("click", (event) => {
+    event.preventDefault();
+    return params.goTo("/yourName", { player: "1" });
+  });
+  const handlerButtonRoom = (event) => {
+    event.preventDefault();
+    return params.goTo("/yourCodeRoom", { player: "2" });
+  };
 
-        params.goTo("/yourCodeRoom");
-    };
+  buttonRoom.addEventListener("click", handlerButtonRoom, { once: true });
 
-    buttonRoom.addEventListener("click", handlerButtonRoom);
-    // window.onload = () => {
-    //     buttonRoom.removeEventListener("click", handlerButtonRoom);
-    // };
-
-    return div;
+  return div;
 }
