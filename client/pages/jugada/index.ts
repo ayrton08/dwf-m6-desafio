@@ -32,9 +32,12 @@ export function jugada(params) {
   const currentState = state.getState();
   currentState.firstRound = true;
 
+  state.listenRoom();
+
   setTimeout(() => {
     if (resultado === "gane" && player === "1") {
-      const numberOfVictories = state.win();
+      const numberOfVictories =
+        Number(state.data.rtdbData.history?.player1) + 1 || 0;
       state.history(numberOfVictories, player);
 
       return params.goTo("/result/ganaste", { player });
@@ -50,11 +53,12 @@ export function jugada(params) {
       return params.goTo("/result/perdiste", { player });
     }
     if (resultado === "perdi" && player === "2") {
-      const numberOfVictories = state.win();
+      const numberOfVictories =
+        Number(state.data.rtdbData.history?.player2) + 1 || 0;
       state.history(numberOfVictories, player);
       return params.goTo("/result/ganaste", { player });
     }
-  }, 1000);
+  }, 1500);
 
   return div;
 }

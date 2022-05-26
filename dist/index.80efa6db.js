@@ -736,34 +736,49 @@ function yourName(params) {
         </div>
     `;
     const button = div.querySelector("button-play");
-    const player = history.state.player;
+    let player = history.state.player;
     _state.state.setStatus(player, false);
     const setHistory = ()=>{
         if (_state.state.data.rtdbRoomId && !_state.state.data.historySave && player === "1") {
             _state.state.data.historySave = true;
+            localStorage.setItem(_state.state.data.roomId, "0");
             _state.state.history(0, player);
         }
     };
-    sessionStorage.setItem("victorias", "0");
     button.addEventListener("click", (event)=>{
         const nameValue = document.querySelector("input").value;
         const nameEmpty = document.querySelector(".name-empty");
         nameEmpty.textContent = "";
         if (nameValue === "") return nameEmpty.textContent = "We need to know your name";
         _state.state.setFullName(player, nameValue);
-        div.innerHTML = `<counter-room></counter-room>`;
         _state.state.setStatus(player, true);
         _state.state.signIn(player).then(()=>{
             if (_state.state.data.roomId) _state.state.getRtdbRoomId().then(()=>{
-                _state.state.history(0, player);
                 _state.state.listenRoom();
-                return params.goTo("/waitRoom", {
-                    player
-                });
+                setTimeout(()=>{
+                    let currentState = _state.state.getState();
+                    if (currentState.rtdbData.jugador1.name !== nameValue && currentState.rtdbData.jugador1.name && currentState.rtdbData.jugador2.name !== nameValue && currentState.rtdbData.jugador2.name) return nameEmpty.textContent = "Sorry, this room is full or the name is wrong 😥";
+                    if (currentState.rtdbData.jugador1?.name === nameValue) {
+                        _state.state.setFullName("1", nameValue);
+                        return params.goTo("/waitRoom", {
+                            player: "1"
+                        });
+                    }
+                    if (currentState.rtdbData.jugador2?.name === nameValue) return params.goTo("/waitRoom", {
+                        player: "2"
+                    });
+                    if (!currentState.rtdbData.jugador2?.name) {
+                        _state.state.history(0, player);
+                        return params.goTo("/waitRoom", {
+                            player: "2"
+                        });
+                    }
+                }, 1500);
             });
             else _state.state.askNewRoom().then(()=>{
                 _state.state.subscribe(setHistory);
                 _state.state.listenRoom();
+                div.innerHTML = `<counter-room></counter-room>`;
                 return params.goTo("/codeRoom", {
                     player
                 });
@@ -920,10 +935,10 @@ const state = {
             },
             body: JSON.stringify({
                 name: params.name,
-                rtdbRoomId,
                 status: params.status,
                 online: params.online,
-                player: params.player
+                player: params.player,
+                rtdbRoomId
             })
         });
     },
@@ -956,11 +971,6 @@ const state = {
         if (player1 === "tijera" && player2 === "papel") return "gane";
         if (player1 === player2) return "empate";
         else return "perdi";
-    },
-    win () {
-        const value = sessionStorage.getItem("victorias");
-        sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
-        return Number(value) + 1;
     },
     history (victory, player) {
         const rtdbRoomId = this.getState().rtdbRoomId;
@@ -15648,7 +15658,7 @@ function codeRoom(params) {
             player
         });
     };
-    _state.state.history(0);
+    _state.state.history(0, player);
     _state.state.accessToRoom().then(()=>{
         _state.state.subscribe(goToRoom);
         return _state.state.listenRoom();
@@ -15954,9 +15964,10 @@ function jugada(params) {
     const resultado = _state.state.whoWins(jugador1, jugador2);
     const currentState = _state.state.getState();
     currentState.firstRound = true;
+    _state.state.listenRoom();
     setTimeout(()=>{
         if (resultado === "gane" && player === "1") {
-            const numberOfVictories = _state.state.win();
+            const numberOfVictories = Number(_state.state.data.rtdbData.history?.player1) + 1 || 0;
             _state.state.history(numberOfVictories, player);
             return params.goTo("/result/ganaste", {
                 player
@@ -15972,13 +15983,13 @@ function jugada(params) {
             player
         });
         if (resultado === "perdi" && player === "2") {
-            const numberOfVictories = _state.state.win();
+            const numberOfVictories = Number(_state.state.data.rtdbData.history?.player2) + 1 || 0;
             _state.state.history(numberOfVictories, player);
             return params.goTo("/result/ganaste", {
                 player
             });
         }
-    }, 1000);
+    }, 1500);
     return div;
 }
 
@@ -16824,6 +16835,7 @@ function historyComp() {
     class History extends HTMLElement {
         constructor(){
             super();
+            _state.state.listenRoom();
         }
         connectedCallback() {
             this.render();
@@ -16833,9 +16845,7 @@ function historyComp() {
                 mode: "open"
             });
             const div = document.createElement("div");
-            _state.state.listenRoom();
             const data = _state.state.getState();
-            const player2 = data.rtdbData.history?.player2;
             const nameOne = data.rtdbData.jugador1.name;
             const nameTwo = data.rtdbData.jugador2.name;
             div.className = "container";

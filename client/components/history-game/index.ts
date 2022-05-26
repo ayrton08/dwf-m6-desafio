@@ -4,6 +4,7 @@ export function historyComp() {
   class History extends HTMLElement {
     constructor() {
       super();
+      state.listenRoom();
     }
 
     connectedCallback() {
@@ -13,9 +14,7 @@ export function historyComp() {
     render() {
       this.attachShadow({ mode: "open" });
       const div = document.createElement("div");
-      state.listenRoom();
       const data = state.getState();
-      const player2 = data.rtdbData.history?.player2;
 
       const nameOne = data.rtdbData.jugador1.name;
       const nameTwo = data.rtdbData.jugador2.name;

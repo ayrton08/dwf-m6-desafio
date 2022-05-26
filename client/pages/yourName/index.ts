@@ -19,19 +19,17 @@ export function yourName(params) {
     `;
 
   const button = div.querySelector("button-play");
-
-  const player = history.state.player;
+  let player = history.state.player;
 
   state.setStatus(player, false);
 
   const setHistory = () => {
     if (state.data.rtdbRoomId && !state.data.historySave && player === "1") {
       state.data.historySave = true;
+      localStorage.setItem(state.data.roomId, "0");
       state.history(0, player);
     }
   };
-
-  sessionStorage.setItem("victorias", "0");
 
   button.addEventListener("click", (event) => {
     const nameValue = document.querySelector("input").value;
@@ -41,20 +39,41 @@ export function yourName(params) {
       return (nameEmpty.textContent = "We need to know your name");
     }
     state.setFullName(player, nameValue);
-    div.innerHTML = `<counter-room></counter-room>`;
 
     state.setStatus(player, true);
     state.signIn(player).then(() => {
       if (state.data.roomId) {
         state.getRtdbRoomId().then(() => {
-          state.history(0, player);
+
           state.listenRoom();
-          return params.goTo("/waitRoom", { player });
+          setTimeout(() => {
+            let currentState = state.getState();
+            if (
+              currentState.rtdbData.jugador1.name !== nameValue &&
+              currentState.rtdbData.jugador1.name &&
+              currentState.rtdbData.jugador2.name !== nameValue &&
+              currentState.rtdbData.jugador2.name
+            ) {
+              return (nameEmpty.textContent = "Sorry, this room is full or the name is wrong 😥");
+            }
+            if (currentState.rtdbData.jugador1?.name === nameValue) {
+              state.setFullName("1", nameValue);
+              return params.goTo("/waitRoom", { player: "1" });
+            }
+            if (currentState.rtdbData.jugador2?.name === nameValue) {
+              return params.goTo("/waitRoom", { player: "2" });
+            }
+            if (!currentState.rtdbData.jugador2?.name) {
+              state.history(0, player);
+              return params.goTo("/waitRoom", { player: "2" });
+            }
+          }, 1500);
         });
       } else {
         state.askNewRoom().then(() => {
           state.subscribe(setHistory);
           state.listenRoom();
+          div.innerHTML = `<counter-room></counter-room>`;
           return params.goTo("/codeRoom", { player });
         });
       }

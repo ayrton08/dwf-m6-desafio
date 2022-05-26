@@ -29,7 +29,7 @@ export function codeRoom(params) {
       return params.goTo("/waitRoom", { player });
     }
   };
-  state.history(0);
+  state.history(0, player);
   state.accessToRoom().then(() => {
     state.subscribe(goToRoom);
     return state.listenRoom();

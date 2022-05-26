@@ -60,6 +60,7 @@ const routes = [
         path: /\/result\/empate/,
         component: empate,
     },
+
 ];
 
 export function initRouter(container: Element) {

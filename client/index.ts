@@ -13,6 +13,7 @@ import { historyComp } from "./components/history-game";
 import { counterRoom } from "./components/counterRoomId";
 
 
+
 (function (){
     titleText()
     buttonStart()
@@ -26,6 +27,7 @@ import { counterRoom } from "./components/counterRoomId";
     counterComp()
     historyComp()
     counterRoom()
+    
 
     const root = document.querySelector(".root");
 

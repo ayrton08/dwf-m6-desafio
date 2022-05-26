@@ -16,6 +16,7 @@ export function yourCodeRoom(params) {
     `;
   const player = history.state.player;
   const button = div.querySelector("button-room");
+
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const codeValue = document.querySelector("input").value;

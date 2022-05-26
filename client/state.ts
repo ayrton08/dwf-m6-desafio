@@ -1,5 +1,5 @@
-const API_BASE_URL = "https://apx-m6.herokuapp.com";
-// const API_BASE_URL = "http://localhost:3000";
+// const API_BASE_URL = "https://apx-m6.herokuapp.com";
+const API_BASE_URL = "http://localhost:3000";
 import { getDatabase, ref, onValue, update } from "firebase/database";
 import { rtdb } from "../server/rtdb";
 
@@ -121,7 +121,6 @@ const state = {
 
   setState(newState) {
     this.data = newState;
-
     for (const cb of this.listeners) {
       cb();
     }
@@ -177,7 +176,6 @@ const state = {
     player: any;
     online: any;
   }) {
-
     const rtdbRoomId = this.init().rtdbRoomId;
     return fetch(API_BASE_URL + "/cleanPlay", {
       method: "post",
@@ -186,10 +184,10 @@ const state = {
       },
       body: JSON.stringify({
         name: params.name,
-        rtdbRoomId,
         status: params.status,
         online: params.online,
         player: params.player,
+        rtdbRoomId,
       }),
     });
   },
@@ -236,13 +234,8 @@ const state = {
       return "perdi";
     }
   },
-  win() {
-    const value = sessionStorage.getItem("victorias");
-    sessionStorage.setItem("victorias", JSON.stringify(Number(value) + 1));
-    return Number(value) + 1;
-  },
 
-  history(victory,player) {
+  history(victory, player) {
     const rtdbRoomId = this.getState().rtdbRoomId;
     return fetch(API_BASE_URL + "/history", {
       method: "post",

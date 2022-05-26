@@ -214,7 +214,6 @@ app.post("/history", function (req, res) {
 
     if (player === "1") {
         const roomRef = rtdb.ref(`/rooms/${rtdbRoomId}/history`);
-
         const data = roomRef.update({
             player1: req.body.victory,
         });
